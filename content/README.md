@@ -64,6 +64,19 @@ Open the Web UI link from the Aspire dashboard. Try:
 - "Mark item 1 as complete"
 - "Delete item 2"
 
+### 4. Use DevUI (Development)
+
+When running locally, the Agent service includes **DevUI** — a built-in web interface from the Microsoft Agent Framework for debugging and testing agents.
+
+DevUI lets you:
+- **Chat directly with the agent** without the Blazor UI
+- **Inspect registered tools** and their parameters
+- **Trace tool calls** and agent reasoning
+
+Access DevUI by opening the Agent service URL from the Aspire dashboard (it's served at the root of the Agent service in Development mode).
+
+> **Note:** DevUI is only available in the `Development` environment. It is not mapped in production.
+
 ## How to Extend
 
 ### Add a new tool

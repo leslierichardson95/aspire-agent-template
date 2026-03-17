@@ -1,6 +1,8 @@
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.DevUI;
+using Microsoft.Agents.AI.Hosting;
 using Microsoft.Extensions.AI;
 using MyAgentApp.Agent;
 
@@ -32,12 +34,14 @@ if (!string.IsNullOrEmpty(endpoint))
             .AsIChatClient();
     });
 
-    builder.Services.AddSingleton<AIAgent>(sp =>
+    // Register the agent using the Hosting pattern so DevUI can discover it.
+    // builder.AddAIAgent registers a keyed AIAgent service.
+    builder.AddAIAgent("MyAgent", (sp, name) =>
     {
         var chatClient = sp.GetRequiredService<IChatClient>();
         var todoTools = new TodoTools(sp.GetRequiredService<TodoService>());
         return chatClient.AsAIAgent(
-            name: "MyAgent",
+            name: name,
             instructions: """
                 You are a helpful AI assistant that manages a todo list.
                 Use the available tools to add, list, complete, and delete todo items.
@@ -51,6 +55,15 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
+// ── DevUI (Development only) ────────────────────────────────────────────────
+// In Development mode, DevUI provides a web interface for testing and debugging
+// the agent — inspect tools, trace calls, and chat without the Blazor UI.
+// Access it at the agent service URL (see Aspire dashboard for the address).
+if (app.Environment.IsDevelopment())
+{
+    app.MapDevUI();
+}
+
 // ── Chat Endpoint ───────────────────────────────────────────────────────────
 // POST /api/chat  { "messages": [{ "role": "user", "content": "Hello!" }] }
 // Returns { "response": "Hi there! How can I help?" }
@@ -60,7 +73,7 @@ app.MapDefaultEndpoints();
 
 app.MapPost("/api/chat", async (ChatRequest request, IServiceProvider sp) =>
 {
-    var agent = sp.GetService<AIAgent>();
+    var agent = sp.GetKeyedService<AIAgent>("MyAgent");
     if (agent is null)
     {
         return Results.Json(new { response = "⚠️ Agent not configured. Set AzureOpenAI:Endpoint via user-secrets. See README for details." },
@@ -78,7 +91,7 @@ app.MapPost("/api/chat", async (ChatRequest request, IServiceProvider sp) =>
     return Results.Ok(new { response = response.Text });
 });
 
-app.MapGet("/", (IServiceProvider sp) => sp.GetService<AIAgent>() is null
+app.MapGet("/", (IServiceProvider sp) => sp.GetKeyedService<AIAgent>("MyAgent") is null
     ? "⚠️ Agent Service is running but AI is not configured. Set AzureOpenAI:Endpoint via user-secrets."
     : "Agent Service is running. POST to /api/chat to interact.");
 
