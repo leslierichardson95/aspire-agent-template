@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XmlEncodedProjectName</title>
+    <base href="/" />
+    <HeadOutlet @rendermode="InteractiveServer" />
+    <style>
+        :root { --primary: #6366f1; --bg: #f8fafc; --chat-bg: #fff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); }
+    </style>
+</head>
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <script src="_framework/blazor.web.js"></script>
+    <script>window.scrollToElement = (el) => { if (el) el.scrollIntoView({ behavior: 'smooth' }); };</script>
+</body>
+</html>
