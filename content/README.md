@@ -6,28 +6,31 @@ An AI agent application built with [.NET Aspire](https://learn.microsoft.com/dot
 
 ```
 Browser (Blazor Chat UI)
-  │
-  ▼
-XmlEncodedProjectName.Web ──HTTP──▶ XmlEncodedProjectName.Agent
-                              │
-                              ▼
-                          AI Agent (Azure OpenAI)
-                              │
-                              ▼
-                          TodoTools → TodoService
+  |
+  v
+XmlEncodedProjectName.Web --AG-UI (SSE)--> XmlEncodedProjectName.Agent
+                                |
+                                v
+                            AI Agent (Azure OpenAI via Aspire)
+                                |
+                                v
+                            TodoTools -> TodoService
 ```
 
-**The flow:** User message → Web UI → Agent API → AI Agent → Tool calls → Domain Service → Response
+**The flow:** User message -> Web UI -> AG-UI stream -> AI Agent -> Tool calls -> Domain Service -> Streaming response
 
-This follows the pattern: `API request → Application service → Agent → Tools → Domain services`
+**Key protocols:**
+- **AG-UI** -- Standardized streaming protocol between Web UI and Agent (Server-Sent Events)
+- **Aspire service discovery** -- Agent discovers the LLM via connection string injection
+- **DevUI** -- Built-in dev-time debugging UI at `/devui`
 
 ## Projects
 
 | Project | Purpose |
 |---------|---------|
-| **XmlEncodedProjectName.AppHost** | Aspire orchestrator — run this to start everything |
-| **XmlEncodedProjectName.Agent** | AI agent API service with tools and domain logic |
-| **XmlEncodedProjectName.Web** | Blazor Server chat UI |
+| **XmlEncodedProjectName.AppHost** | Aspire orchestrator -- run this to start everything |
+| **XmlEncodedProjectName.Agent** | AI agent service with AG-UI endpoint, DevUI, tools |
+| **XmlEncodedProjectName.Web** | Blazor Server chat UI with streaming responses |
 | **XmlEncodedProjectName.ServiceDefaults** | Shared OpenTelemetry, health checks, resilience |
 | **XmlEncodedProjectName.Tests** | xUnit tests for domain tools |
 
@@ -35,13 +38,21 @@ This follows the pattern: `API request → Application service → Agent → Too
 
 ### 1. Configure Azure OpenAI
 
+Set the connection string in the **AppHost** project (not the Agent):
+
 ```bash
-cd XmlEncodedProjectName.Agent
-dotnet user-secrets set "AzureOpenAI:Endpoint" "https://your-resource.openai.azure.com"
-dotnet user-secrets set "AzureOpenAI:Deployment" "gpt-4o-mini"
+cd XmlEncodedProjectName.AppHost
+dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
 ```
 
-You'll need an Azure OpenAI resource with a deployed model. The app uses `AzureCliCredential` for authentication — make sure you're logged in:
+Optionally set the model deployment name (defaults to `gpt-4o-mini`):
+
+```bash
+cd XmlEncodedProjectName.Agent
+dotnet user-secrets set "OpenAI:Deployment" "gpt-4o-mini"
+```
+
+The app uses `DefaultAzureCredential` for authentication -- make sure you are logged in:
 
 ```bash
 az login
@@ -54,11 +65,11 @@ cd XmlEncodedProjectName.AppHost
 dotnet run
 ```
 
-This starts the Aspire dashboard, the Agent API, and the Web UI. Open the dashboard URL shown in the console to see all services.
+This starts the Aspire dashboard, the Agent service, and the Web UI. Open the dashboard URL shown in the console to see all services.
 
 ### 3. Chat with the Agent
 
-Open the Web UI link from the Aspire dashboard. Try:
+Open the Web UI link from the Aspire dashboard. Responses stream in real-time via AG-UI. Try:
 - "Add a todo to buy groceries"
 - "What's on my list?"
 - "Mark item 1 as complete"
@@ -66,14 +77,14 @@ Open the Web UI link from the Aspire dashboard. Try:
 
 ### 4. Use DevUI (Development)
 
-When running locally, the Agent service includes **DevUI** — a built-in web interface from the Microsoft Agent Framework for debugging and testing agents.
+When running locally, the Agent service includes **DevUI** -- a built-in web interface from the Microsoft Agent Framework for debugging and testing agents.
 
 DevUI lets you:
 - **Chat directly with the agent** without the Blazor UI
 - **Inspect registered tools** and their parameters
 - **Trace tool calls** and agent reasoning
 
-Access DevUI by navigating to **`/devui`** on the Agent service URL (find the Agent endpoint in the Aspire dashboard, then append `/devui`).
+Access DevUI from the **Agent service URL** in the Aspire dashboard (it links directly to `/devui`).
 
 > **Note:** DevUI is only available in the `Development` environment. It is not mapped in production.
 
@@ -98,18 +109,17 @@ Access DevUI by navigating to **`/devui`** on the Agent service URL (find the Ag
 
 ### Swap the AI provider
 
-The agent uses `IChatClient` from `Microsoft.Extensions.AI` — swap the implementation in `Program.cs`:
+The LLM is configured as an Aspire connection string in the AppHost. The Agent resolves `OpenAI.OpenAIClient` from DI -- no direct Azure SDK imports needed.
+
+To use a different provider, change the connection string or modify the AppHost:
 
 ```csharp
-// Azure OpenAI (default)
-new AzureOpenAIClient(new Uri(endpoint), new AzureCliCredential())
-    .GetChatClient(deployment).AsIChatClient();
+// Azure OpenAI (default) -- via connection string
+var openai = builder.AddConnectionString("openai");
 
-// OpenAI
-new OpenAIClient(apiKey).GetChatClient("gpt-4o-mini").AsIChatClient();
-
-// Ollama (local)
-new OllamaChatClient(new Uri("http://localhost:11434"), "llama3.2");
+// Azure OpenAI with provisioning (azd deploy)
+var openai = builder.AddAzureOpenAI("openai")
+    .AddDeployment("chat", "gpt-4o", "2024-05-13");
 ```
 
 ### Add a real domain service
@@ -130,4 +140,6 @@ dotnet test
 
 - [.NET Aspire documentation](https://learn.microsoft.com/dotnet/aspire/)
 - [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents)
+- [AG-UI Protocol](https://learn.microsoft.com/agent-framework/ag-ui/)
+- [DevUI](https://learn.microsoft.com/agent-framework/devui/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/ai-extensions)

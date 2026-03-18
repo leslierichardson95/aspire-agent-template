@@ -1,5 +1,8 @@
 @page "/"
-@inject IHttpClientFactory HttpClientFactory
+@using Microsoft.Agents.AI
+@using Microsoft.Agents.AI.AGUI
+@using Microsoft.Extensions.AI
+@inject AGUIChatClient ChatClient
 @inject IJSRuntime JS
 
 <PageTitle>XmlEncodedProjectName Chat</PageTitle>
@@ -32,11 +35,11 @@
                 </div>
             </div>
         }
-        @if (_isLoading)
+        @if (_isStreaming)
         {
             <div style="display:flex;justify-content:flex-start;margin-bottom:.75rem;">
                 <div style="padding:.75rem 1rem;border-radius:12px;background:#f1f5f9;color:#94a3b8;">
-                    Thinking...
+                    <span class="typing-indicator">●●●</span>
                 </div>
             </div>
         }
@@ -45,19 +48,30 @@
 
     <form @onsubmit="SendMessage" style="display:flex;gap:.5rem;">
         <input @bind="_input" @bind:event="oninput" placeholder="Type a message..."
-               disabled="@_isLoading"
+               disabled="@(_isStreaming || _isSending)"
                style="flex:1;padding:.75rem 1rem;border:2px solid #e2e8f0;border-radius:8px;font-size:1rem;outline:none;" />
-        <button type="submit" disabled="@(_isLoading || string.IsNullOrWhiteSpace(_input))"
+        <button type="submit" disabled="@(_isStreaming || _isSending || string.IsNullOrWhiteSpace(_input))"
                 style="padding:.75rem 1.5rem;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;">
             Send
         </button>
     </form>
 </div>
 
+<style>
+    .typing-indicator {
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+    @@keyframes pulse {
+        0%, 100% { opacity: .3; }
+        50% { opacity: 1; }
+    }
+</style>
+
 @code {
     private readonly List<ChatMessageDto> _messages = [];
     private string _input = "";
-    private bool _isLoading;
+    private bool _isStreaming;
+    private bool _isSending;
     private ElementReference _scrollAnchor;
 
     private async Task ScrollToBottom()
@@ -79,30 +93,66 @@
         var userMessage = _input.Trim();
         _input = "";
         _messages.Add(new("user", userMessage));
-        _isLoading = true;
+        _isSending = true;
         await InvokeAsync(StateHasChanged);
         await ScrollToBottom();
 
         try
         {
-            var client = HttpClientFactory.CreateClient("AgentApi");
-            // Send the full conversation history so the agent has multi-turn context
-            var response = await client.PostAsJsonAsync("/api/chat", new { messages = _messages });
-            var result = await response.Content.ReadFromJsonAsync<AgentResponse>();
-            _messages.Add(new("assistant", result?.Response ?? "No response."));
+            // Build conversation as ChatMessage list for the agent
+            var chatMessages = _messages
+                .Select(m => new ChatMessage(
+                    m.Role == "user" ? ChatRole.User : ChatRole.Assistant,
+                    m.Content))
+                .ToList();
+
+            // Create an AIAgent from the AG-UI client and stream the response
+            var agent = ChatClient.AsAIAgent(name: "chat-client");
+            var session = await agent.CreateSessionAsync();
+
+            _messages.Add(new("assistant", ""));
+            _isSending = false;
+            _isStreaming = true;
+            await InvokeAsync(StateHasChanged);
+
+            await foreach (var update in agent.RunStreamingAsync(chatMessages, session))
+            {
+                foreach (var content in update.Contents)
+                {
+                    if (content is TextContent textContent && !string.IsNullOrEmpty(textContent.Text))
+                    {
+                        _messages[^1] = _messages[^1] with { Content = _messages[^1].Content + textContent.Text };
+                        await InvokeAsync(StateHasChanged);
+                        await ScrollToBottom();
+                    }
+                }
+            }
+
+            // If no content was streamed, show fallback
+            if (string.IsNullOrEmpty(_messages[^1].Content))
+            {
+                _messages[^1] = new("assistant", "No response received.");
+            }
         }
         catch (Exception ex)
         {
-            _messages.Add(new("assistant", $"Error: {ex.Message}"));
+            if (_messages.Count > 0 && _messages[^1].Role == "assistant" && string.IsNullOrEmpty(_messages[^1].Content))
+            {
+                _messages[^1] = new("assistant", $"Error: {ex.Message}");
+            }
+            else
+            {
+                _messages.Add(new("assistant", $"Error: {ex.Message}"));
+            }
         }
         finally
         {
-            _isLoading = false;
+            _isStreaming = false;
+            _isSending = false;
             await InvokeAsync(StateHasChanged);
             await ScrollToBottom();
         }
     }
 
     private record ChatMessageDto(string Role, string Content);
-    private record AgentResponse(string Response);
 }

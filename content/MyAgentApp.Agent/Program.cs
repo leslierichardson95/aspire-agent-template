@@ -1,8 +1,7 @@
-using Azure.AI.OpenAI;
-using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.DevUI;
 using Microsoft.Agents.AI.Hosting;
+using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.Extensions.AI;
 using MyAgentApp.Agent;
 
@@ -16,29 +15,23 @@ builder.AddServiceDefaults();
 
 builder.Services.AddSingleton<TodoService>();
 
-// ── AI Agent Configuration ──────────────────────────────────────────────────
-// Configure the AI agent with Azure OpenAI (or swap to OpenAI / Ollama).
-// Set these in user-secrets or environment variables:
-//   dotnet user-secrets set "AzureOpenAI:Endpoint" "https://your-resource.openai.azure.com"
-//   dotnet user-secrets set "AzureOpenAI:Deployment" "gpt-4o-mini"
+// ── LLM Client (Aspire-native) ──────────────────────────────────────────────
+// The OpenAI client is configured via Aspire connection string injection.
+// Set the connection string in the AppHost project:
+//   cd MyAgentApp.AppHost
+//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
 
-var endpoint = builder.Configuration["AzureOpenAI:Endpoint"];
-var deployment = builder.Configuration["AzureOpenAI:Deployment"] ?? "gpt-4o-mini";
-
-if (!string.IsNullOrEmpty(endpoint))
+var connectionString = builder.Configuration.GetConnectionString("openai");
+if (!string.IsNullOrEmpty(connectionString))
 {
-    builder.Services.AddSingleton<IChatClient>(sp =>
-    {
-        return new AzureOpenAIClient(new Uri(endpoint), new AzureCliCredential())
-            .GetChatClient(deployment)
-            .AsIChatClient();
-    });
+    builder.AddAzureOpenAIClient("openai");
 
     // Register the agent using the Hosting pattern so DevUI can discover it.
-    // builder.AddAIAgent registers a keyed AIAgent service.
+    var deployment = builder.Configuration["OpenAI:Deployment"] ?? "gpt-4o-mini";
     builder.AddAIAgent("MyAgent", (sp, name) =>
     {
-        var chatClient = sp.GetRequiredService<IChatClient>();
+        var openaiClient = sp.GetRequiredService<OpenAI.OpenAIClient>();
+        var chatClient = openaiClient.GetChatClient(deployment).AsIChatClient();
         var todoTools = new TodoTools(sp.GetRequiredService<TodoService>());
         return chatClient.AsAIAgent(
             name: name,
@@ -51,15 +44,27 @@ if (!string.IsNullOrEmpty(endpoint))
     });
 }
 
+// ── AG-UI Protocol ───────────────────────────────────────────────────────────
+// AG-UI provides standardized streaming communication between the agent and
+// web clients via Server-Sent Events (SSE).
+builder.Services.AddAGUI();
+
 // ── OpenAI-compatible API (required by DevUI) ───────────────────────────────
-// These services expose the agent via OpenAI Responses/Conversations protocol,
-// which DevUI uses to communicate with the agent.
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+// ── AG-UI Endpoint (streaming) ───────────────────────────────────────────────
+// POST /api/agui — streams agent responses as Server-Sent Events.
+// The WebUI uses AGUIChatClient to connect to this endpoint.
+var agent = app.Services.GetKeyedService<AIAgent>("MyAgent");
+if (agent is not null)
+{
+    app.MapAGUI("/api/agui", agent);
+}
 
 // Map OpenAI-compatible endpoints (required by DevUI)
 app.MapOpenAIResponses();
@@ -74,38 +79,8 @@ if (app.Environment.IsDevelopment())
     app.MapDevUI();
 }
 
-// ── Chat Endpoint ───────────────────────────────────────────────────────────
-// POST /api/chat  { "messages": [{ "role": "user", "content": "Hello!" }] }
-// Returns { "response": "Hi there! How can I help?" }
-//
-// The messages array supports multi-turn conversations — send the full
-// conversation history so the agent can reference prior context.
-
-app.MapPost("/api/chat", async (ChatRequest request, IServiceProvider sp) =>
-{
-    var agent = sp.GetKeyedService<AIAgent>("MyAgent");
-    if (agent is null)
-    {
-        return Results.Json(new { response = "⚠️ Agent not configured. Set AzureOpenAI:Endpoint via user-secrets. See README for details." },
-            statusCode: 503);
-    }
-
-    // Build conversation history for multi-turn context
-    var chatMessages = request.Messages
-        .Select(m => new ChatMessage(
-            m.Role == "user" ? ChatRole.User : ChatRole.Assistant,
-            m.Content))
-        .ToList();
-
-    var response = await agent.RunAsync(chatMessages);
-    return Results.Ok(new { response = response.Text });
-});
-
 app.MapGet("/", (IServiceProvider sp) => sp.GetKeyedService<AIAgent>("MyAgent") is null
-    ? "⚠️ Agent Service is running but AI is not configured. Set AzureOpenAI:Endpoint via user-secrets."
-    : "Agent Service is running. POST to /api/chat to interact.");
+    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai in AppHost user-secrets."
+    : "Agent Service is running. AG-UI endpoint at /api/agui. DevUI at /devui.");
 
 app.Run();
-
-public record ChatMessageDto(string Role, string Content);
-public record ChatRequest(List<ChatMessageDto> Messages);
