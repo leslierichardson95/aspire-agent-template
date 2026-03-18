@@ -11,7 +11,13 @@ Browser (Blazor Chat UI)
 XmlEncodedProjectName.Web --AG-UI (SSE)--> XmlEncodedProjectName.Agent
                                 |
                                 v
+<!--#if (UseFoundry) -->
+                            AI Agent (Azure AI Foundry via Aspire)
+<!--#elif (UseAzureOpenAI) -->
                             AI Agent (Azure OpenAI via Aspire)
+<!--#else -->
+                            AI Agent (OpenAI via Aspire)
+<!--#endif -->
                                 |
                                 v
                             TodoTools -> TodoService
@@ -36,13 +42,20 @@ XmlEncodedProjectName.Web --AG-UI (SSE)--> XmlEncodedProjectName.Agent
 
 ## Getting Started
 
-### 1. Configure Azure OpenAI
+<!--#if (UseFoundry) -->
+### 1. Configure Azure AI Foundry
 
-Set the connection string in the **AppHost** project (not the Agent):
+Set the connection string in the **AppHost** project:
 
 ```bash
 cd XmlEncodedProjectName.AppHost
-dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
+dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-foundry-endpoint.openai.azure.com/"
+```
+
+You need an Azure AI Foundry project with a deployed model. The app uses `DefaultAzureCredential` -- make sure you are logged in:
+
+```bash
+az login
 ```
 
 Optionally set the model deployment name (defaults to `gpt-4o-mini`):
@@ -51,12 +64,51 @@ Optionally set the model deployment name (defaults to `gpt-4o-mini`):
 cd XmlEncodedProjectName.Agent
 dotnet user-secrets set "OpenAI:Deployment" "gpt-4o-mini"
 ```
+<!--#elif (UseAzureOpenAI) -->
+### 1. Configure Azure OpenAI
 
-The app uses `DefaultAzureCredential` for authentication -- make sure you are logged in:
+Set the connection string in the **AppHost** project:
+
+```bash
+cd XmlEncodedProjectName.AppHost
+dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
+```
+
+You need an Azure OpenAI resource with a deployed model. The app uses `DefaultAzureCredential` -- make sure you are logged in:
 
 ```bash
 az login
 ```
+
+Optionally set the model deployment name (defaults to `gpt-4o-mini`):
+
+```bash
+cd XmlEncodedProjectName.Agent
+dotnet user-secrets set "OpenAI:Deployment" "gpt-4o-mini"
+```
+<!--#else -->
+### 1. Configure OpenAI
+
+Set the connection string in the **AppHost** project:
+
+```bash
+cd XmlEncodedProjectName.AppHost
+dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://api.openai.com/v1;Key=sk-your-api-key"
+```
+
+For **GitHub Models**, use:
+
+```bash
+dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token"
+```
+
+Optionally set the model name (defaults to `gpt-4o-mini`):
+
+```bash
+cd XmlEncodedProjectName.Agent
+dotnet user-secrets set "OpenAI:Deployment" "gpt-4o-mini"
+```
+<!--#endif -->
 
 ### 2. Run the App
 
@@ -114,7 +166,7 @@ The LLM is configured as an Aspire connection string in the AppHost. The Agent r
 To use a different provider, change the connection string or modify the AppHost:
 
 ```csharp
-// Azure OpenAI (default) -- via connection string
+// Azure OpenAI / Foundry -- via connection string
 var openai = builder.AddConnectionString("openai");
 
 // Azure OpenAI with provisioning (azd deploy)

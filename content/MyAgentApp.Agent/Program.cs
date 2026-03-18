@@ -18,13 +18,27 @@ builder.Services.AddSingleton<TodoService>();
 // ── LLM Client (Aspire-native) ──────────────────────────────────────────────
 // The OpenAI client is configured via Aspire connection string injection.
 // Set the connection string in the AppHost project:
+#if (UseFoundry)
+//   cd MyAgentApp.AppHost
+//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-foundry-endpoint.openai.azure.com/"
+#elif (UseAzureOpenAI)
 //   cd MyAgentApp.AppHost
 //   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
+#else
+//   cd MyAgentApp.AppHost
+//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://api.openai.com/v1;Key=sk-your-key"
+//   For GitHub Models: "Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token"
+#endif
 
 var connectionString = builder.Configuration.GetConnectionString("openai");
 if (!string.IsNullOrEmpty(connectionString))
 {
+#if (UseOpenAI)
+    // Auto-detects provider (OpenAI or Azure OpenAI) from connection string format
+    builder.AddOpenAIClientFromConfiguration("openai");
+#else
     builder.AddAzureOpenAIClient("openai");
+#endif
 
     // Register the agent using the Hosting pattern so DevUI can discover it.
     var deployment = builder.Configuration["OpenAI:Deployment"] ?? "gpt-4o-mini";
@@ -80,7 +94,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", (IServiceProvider sp) => sp.GetKeyedService<AIAgent>("MyAgent") is null
-    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai in AppHost user-secrets."
+#if (UseFoundry)
+    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai to your Foundry endpoint in AppHost user-secrets."
+#elif (UseAzureOpenAI)
+    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai to your Azure OpenAI endpoint in AppHost user-secrets."
+#else
+    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai with your OpenAI API key in AppHost user-secrets."
+#endif
     : "Agent Service is running. AG-UI endpoint at /api/agui. DevUI at /devui.");
 
 app.Run();

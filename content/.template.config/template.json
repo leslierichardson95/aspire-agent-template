@@ -59,6 +59,39 @@
       "valueSource": "name",
       "valueTransform": "xmlEncode"
     },
+    "provider": {
+      "type": "parameter",
+      "datatype": "choice",
+      "description": "The AI model provider to use.",
+      "displayName": "AI Provider",
+      "choices": [
+        {
+          "choice": "Foundry",
+          "description": "Azure AI Foundry (recommended)"
+        },
+        {
+          "choice": "AzureOpenAI",
+          "description": "Azure OpenAI Service"
+        },
+        {
+          "choice": "OpenAI",
+          "description": "OpenAI API (also works with GitHub Models)"
+        }
+      ],
+      "defaultValue": "Foundry"
+    },
+    "UseFoundry": {
+      "type": "computed",
+      "value": "(provider == \"Foundry\")"
+    },
+    "UseAzureOpenAI": {
+      "type": "computed",
+      "value": "(provider == \"AzureOpenAI\")"
+    },
+    "UseOpenAI": {
+      "type": "computed",
+      "value": "(provider == \"OpenAI\")"
+    },
     "GeneratedClassNamePrefix": {
       "type": "generated",
       "generator": "regex",
