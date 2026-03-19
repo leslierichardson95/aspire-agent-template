@@ -20,10 +20,20 @@ XmlEncodedProjectName.Web --AG-UI (SSE)--> XmlEncodedProjectName.Agent
 <!--#endif -->
                                 |
                                 v
+<!--#if (IncludeMcp) -->
+                            TodoTools -> TodoService (in-process)
+                                +
+                            MCP Tools -> XmlEncodedProjectName.Mcp (external)
+<!--#else -->
                             TodoTools -> TodoService
+<!--#endif -->
 ```
 
+<!--#if (IncludeMcp) -->
+**The flow:** User message -> Web UI -> AG-UI stream -> AI Agent -> In-process tools + MCP tools -> Domain Service / MCP Server -> Streaming response
+<!--#else -->
 **The flow:** User message -> Web UI -> AG-UI stream -> AI Agent -> Tool calls -> Domain Service -> Streaming response
+<!--#endif -->
 
 **Key protocols:**
 - **AG-UI** -- Standardized streaming protocol between Web UI and Agent (Server-Sent Events)
@@ -39,6 +49,9 @@ XmlEncodedProjectName.Web --AG-UI (SSE)--> XmlEncodedProjectName.Agent
 | **XmlEncodedProjectName.Web** | Blazor Server chat UI with streaming responses |
 | **XmlEncodedProjectName.ServiceDefaults** | Shared OpenTelemetry, health checks, resilience |
 | **XmlEncodedProjectName.Tests** | xUnit tests for domain tools |
+<!--#if (IncludeMcp) -->
+| **XmlEncodedProjectName.Mcp** | MCP server hosting external tools (Model Context Protocol) |
+<!--#endif -->
 
 ## Getting Started
 
@@ -140,6 +153,32 @@ Access DevUI from the **Agent service URL** in the Aspire dashboard (it links di
 
 > **Note:** DevUI is only available in the `Development` environment. It is not mapped in production.
 
+<!--#if (IncludeMcp) -->
+### 5. MCP Server (Model Context Protocol)
+
+This project includes an **MCP server** (`XmlEncodedProjectName.Mcp`) that hosts domain tools accessible via the Model Context Protocol. The agent discovers and invokes these tools automatically at startup via Aspire service discovery.
+
+**How it works:**
+1. The MCP server starts as a separate Aspire project
+2. At agent startup, `McpToolProvider` connects to the MCP server URL (injected by Aspire)
+3. Available tools are discovered via `ListToolsAsync()` and merged with in-process tools
+4. The agent can invoke both in-process tools (e.g. `TodoTools`) and MCP tools in conversations
+
+**Add a new MCP tool:**
+
+1. Add a method to `SampleTools.cs` (or create a new tools class):
+   ```csharp
+   [McpServerTool, Description("Looks up weather for a city")]
+   public static string GetWeather([Description("City name")] string city)
+   {
+       return $"Weather in {city}: 72°F, sunny";
+   }
+   ```
+2. The tool is automatically discovered -- no additional registration needed.
+
+**Learn more:** [MCP in .NET](https://learn.microsoft.com/dotnet/ai/quickstarts/build-mcp-server)
+
+<!--#endif -->
 ## How to Extend
 
 ### Add a new tool

@@ -17,8 +17,18 @@ var builder = DistributedApplication.CreateBuilder(args);
 #endif
 var openai = builder.AddConnectionString("openai");
 
+#if (IncludeMcp)
+// ── MCP Server ───────────────────────────────────────────────────────────────
+// The MCP server hosts domain tools accessible via the Model Context Protocol.
+// The agent discovers and invokes these tools automatically at startup.
+var mcp = builder.AddProject<Projects.MyAgentApp_Mcp>("mcp-server");
+#endif
+
 var agent = builder.AddProject<Projects.MyAgentApp_Agent>("agent")
     .WithReference(openai)
+#if (IncludeMcp)
+    .WithReference(mcp)
+#endif
     .WithUrlForEndpoint("https", url => url.Url = "/devui");
 
 var web = builder.AddProject<Projects.MyAgentApp_Web>("web")

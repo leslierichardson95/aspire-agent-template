@@ -24,6 +24,13 @@
           "exclude": [
             "*.slnx"
           ]
+        },
+        {
+          "condition": "(!IncludeMcp)",
+          "exclude": [
+            "MyAgentApp.Mcp/**",
+            "MyAgentApp.Agent/McpToolProvider.cs"
+          ]
         }
       ]
     }
@@ -91,6 +98,13 @@
     "UseOpenAI": {
       "type": "computed",
       "value": "(provider == \"OpenAI\")"
+    },
+    "IncludeMcp": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Include an MCP (Model Context Protocol) server project for external tool hosting.",
+      "displayName": "Include MCP Server",
+      "defaultValue": "false"
     },
     "GeneratedClassNamePrefix": {
       "type": "generated",
@@ -259,6 +273,10 @@
     },
     {
       "path": "MyAgentApp.Tests/MyAgentApp.Tests.csproj"
+    },
+    {
+      "path": "MyAgentApp.Mcp/MyAgentApp.Mcp.csproj",
+      "condition": "(IncludeMcp)"
     }
   ],
   "postActions": [

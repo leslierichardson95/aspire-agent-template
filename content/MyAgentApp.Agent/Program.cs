@@ -15,6 +15,15 @@ builder.AddServiceDefaults();
 
 builder.Services.AddSingleton<TodoService>();
 
+#if (IncludeMcp)
+// ── MCP Tool Discovery ──────────────────────────────────────────────────────
+// McpToolProvider connects to the MCP server at startup (via Aspire service
+// discovery) and discovers available tools. The agent merges these with
+// in-process tools automatically.
+builder.Services.AddSingleton<McpToolProvider>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<McpToolProvider>());
+#endif
+
 // ── LLM Client (Aspire-native) ──────────────────────────────────────────────
 // The OpenAI client is configured via Aspire connection string injection.
 // Set the connection string in the AppHost project:
@@ -47,6 +56,12 @@ if (!string.IsNullOrEmpty(connectionString))
         var openaiClient = sp.GetRequiredService<OpenAI.OpenAIClient>();
         var chatClient = openaiClient.GetChatClient(deployment).AsIChatClient();
         var todoTools = new TodoTools(sp.GetRequiredService<TodoService>());
+        var tools = new List<AITool>(todoTools.AsAIFunctions());
+#if (IncludeMcp)
+        // Merge MCP tools (discovered at startup) with in-process tools.
+        var mcpToolProvider = sp.GetRequiredService<McpToolProvider>();
+        tools.AddRange(mcpToolProvider.Tools);
+#endif
         return chatClient.AsAIAgent(
             name: name,
             instructions: """
@@ -54,7 +69,7 @@ if (!string.IsNullOrEmpty(connectionString))
                 Use the available tools to add, list, complete, and delete todo items.
                 Be friendly, concise, and helpful. When listing todos, format them clearly.
                 """,
-            tools: todoTools.AsAIFunctions());
+            tools: tools);
     });
 }
 

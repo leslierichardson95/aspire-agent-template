@@ -15,6 +15,9 @@
   <ItemGroup>
     <ProjectReference Include="..\XmlEncodedProjectName.Agent\XmlEncodedProjectName.Agent.csproj" />
     <ProjectReference Include="..\XmlEncodedProjectName.Web\XmlEncodedProjectName.Web.csproj" />
+<!--#if (IncludeMcp) -->
+    <ProjectReference Include="..\XmlEncodedProjectName.Mcp\XmlEncodedProjectName.Mcp.csproj" />
+<!--#endif -->
   </ItemGroup>
 
 </Project>
