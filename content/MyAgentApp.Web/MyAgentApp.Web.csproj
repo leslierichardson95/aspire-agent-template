@@ -7,9 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- AG-UI client for streaming agent communication -->
-    <PackageReference Include="Microsoft.Agents.AI" Version="1.0.0-rc4" />
-    <PackageReference Include="Microsoft.Agents.AI.AGUI" Version="1.0.0-preview.260311.1" />
+    <!-- No external agent packages needed — we use raw HttpClient + SSE for AG-UI streaming -->
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,8 @@
 @page "/"
-@using Microsoft.Agents.AI
-@using Microsoft.Agents.AI.AGUI
-@using Microsoft.Extensions.AI
-@inject AGUIChatClient ChatClient
+@using System.Net.Http
+@using System.Text
+@using System.Text.Json
+@inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime JS
 
 <PageTitle>XmlEncodedProjectName Chat</PageTitle>
@@ -99,29 +99,42 @@
 
         try
         {
-            // Build conversation as ChatMessage list for the agent
-            var chatMessages = _messages
-                .Select(m => new ChatMessage(
-                    m.Role == "user" ? ChatRole.User : ChatRole.Assistant,
-                    m.Content))
-                .ToList();
-
-            // Create an AIAgent from the AG-UI client and stream the response
-            var agent = ChatClient.AsAIAgent(name: "chat-client");
-            var session = await agent.CreateSessionAsync();
+            // Build AG-UI request with full conversation history
+            var aguiMessages = _messages
+                .Select(m => new { role = m.Role, content = m.Content })
+                .ToArray();
+            var json = JsonSerializer.Serialize(new { messages = aguiMessages });
 
             _messages.Add(new("assistant", ""));
             _isSending = false;
             _isStreaming = true;
             await InvokeAsync(StateHasChanged);
 
-            await foreach (var update in agent.RunStreamingAsync(chatMessages, session))
+            // Stream from AG-UI endpoint (SSE) using raw HttpClient
+            var httpClient = HttpClientFactory.CreateClient("AgentApi");
+            using var request = new HttpRequestMessage(HttpMethod.Post, "api/agui");
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            request.Headers.Accept.Add(new("text/event-stream"));
+            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var reader = new System.IO.StreamReader(stream);
+            while (!reader.EndOfStream)
             {
-                foreach (var content in update.Contents)
+                var line = await reader.ReadLineAsync();
+                if (string.IsNullOrEmpty(line) || !line.StartsWith("data: ")) continue;
+
+                var eventJson = line["data: ".Length..];
+                using var doc = JsonDocument.Parse(eventJson);
+                var type = doc.RootElement.GetProperty("type").GetString();
+                if (type == "TEXT_MESSAGE_CONTENT" &&
+                    doc.RootElement.TryGetProperty("delta", out var delta))
                 {
-                    if (content is TextContent textContent && !string.IsNullOrEmpty(textContent.Text))
+                    var text = delta.GetString();
+                    if (!string.IsNullOrEmpty(text))
                     {
-                        _messages[^1] = _messages[^1] with { Content = _messages[^1].Content + textContent.Text };
+                        _messages[^1] = _messages[^1] with { Content = _messages[^1].Content + text };
                         await InvokeAsync(StateHasChanged);
                         await ScrollToBottom();
                     }
