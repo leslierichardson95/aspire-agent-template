@@ -123,16 +123,20 @@ if (!string.IsNullOrEmpty(connectionString))
     });
 
     // Build the handoff workflow — Router is the entry point.
-    // The workflow is registered as "MyAgent" so AG-UI and DevUI work seamlessly.
-    builder.AddWorkflow("MyAgent", (sp, key) =>
+    // Note: We use AddAIAgent with a factory instead of AddWorkflow because
+    // HandoffsWorkflowBuilder.Build() doesn't set the workflow name, causing
+    // AddWorkflow's name validation to fail. This bypasses that by converting
+    // the workflow directly to an AIAgent with the correct name.
+    builder.AddAIAgent("MyAgent", (sp, key) =>
     {
         var router = sp.GetRequiredKeyedService<AIAgent>("Router");
         var specialist = sp.GetRequiredKeyedService<AIAgent>("Specialist");
-        return AgentWorkflowBuilder.CreateHandoffBuilderWith(router)
+        var workflow = AgentWorkflowBuilder.CreateHandoffBuilderWith(router)
             .WithHandoffs(router, [specialist])
             .WithHandoffs(specialist, [router])
             .Build();
-    }).AddAsAIAgent();
+        return workflow.AsAIAgent(name: key);
+    });
 #endif
 }
 
