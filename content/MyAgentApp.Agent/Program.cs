@@ -28,20 +28,109 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<McpToolProvider>()
 #endif
 
 // ── LLM Client (Aspire-native) ──────────────────────────────────────────────
-// The OpenAI client is configured via Aspire connection string injection.
-// Set the connection string in the AppHost project:
-#if (UseFoundry)
-//   cd MyAgentApp.AppHost
-//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-foundry-endpoint.openai.azure.com/"
+#if (UseAnyFoundry)
+// Foundry: IChatClient is registered automatically via Aspire service discovery.
+// The deployment is declared in the AppHost — no manual config needed here.
+builder.AddAzureChatCompletionsClient("chat")
+    .AddChatClient("chat");
 #elif (UseAzureOpenAI)
+// Azure OpenAI connection string. Set in AppHost user-secrets:
 //   cd MyAgentApp.AppHost
 //   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
 #else
+// OpenAI API connection string. Set in AppHost user-secrets:
 //   cd MyAgentApp.AppHost
 //   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://api.openai.com/v1;Key=sk-your-key"
 //   For GitHub Models: "Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token"
 #endif
 
+#if (UseAnyFoundry)
+{
+    // Register the agent using the Hosting pattern so DevUI can discover it.
+#if (!IncludeHandoff)
+    builder.AddAIAgent("MyAgent", (sp, name) =>
+    {
+        var chatClient = sp.GetRequiredService<IChatClient>();
+        var todoTools = new TodoTools(sp.GetRequiredService<TodoService>());
+        var tools = new List<AITool>(todoTools.AsAIFunctions());
+#if (IncludeMcp)
+        // Merge MCP tools (discovered at startup) with in-process tools.
+        var mcpToolProvider = sp.GetRequiredService<McpToolProvider>();
+        tools.AddRange(mcpToolProvider.Tools);
+#endif
+        return chatClient.AsAIAgent(
+            name: name,
+            instructions: """
+                You are a helpful AI assistant that manages a todo list.
+                Use the available tools to add, list, complete, and delete todo items.
+                Be friendly, concise, and helpful. When listing todos, format them clearly.
+                """,
+            tools: tools);
+    });
+#else
+    // ── Multi-Agent Handoff Workflow ─────────────────────────────────────────
+    // Router: classifies user intent and routes to the appropriate specialist.
+    // Specialist: handles domain-specific tasks using tools.
+    // TODO: Add more specialist agents for different domains.
+
+    builder.AddAIAgent("Router", (sp, name) =>
+    {
+        var chatClient = sp.GetRequiredService<IChatClient>();
+        return chatClient.AsAIAgent(
+            name: name,
+            instructions: """
+                You are a routing agent. Your job is to understand the user's intent
+                and hand off to the right specialist agent.
+
+                Available specialists:
+                - "Specialist": Handles todo list management (add, list, complete, delete items)
+
+                If the user's request relates to managing tasks or todos, hand off to Specialist.
+                For general conversation or greetings, respond directly.
+
+                TODO: Add more specialists here as you expand the application.
+                """);
+    });
+
+    builder.AddAIAgent("Specialist", (sp, name) =>
+    {
+        var chatClient = sp.GetRequiredService<IChatClient>();
+        var todoTools = new TodoTools(sp.GetRequiredService<TodoService>());
+        var tools = new List<AITool>(todoTools.AsAIFunctions());
+#if (IncludeMcp)
+        var mcpToolProvider = sp.GetRequiredService<McpToolProvider>();
+        tools.AddRange(mcpToolProvider.Tools);
+#endif
+        return chatClient.AsAIAgent(
+            name: name,
+            instructions: """
+                You are a specialist agent that manages a todo list.
+                Use the available tools to add, list, complete, and delete todo items.
+                Be friendly, concise, and helpful. When listing todos, format them clearly.
+                If the user asks about something outside your expertise, hand off back to Router.
+                """,
+            tools: tools);
+    });
+
+    // Build the handoff workflow — Router is the entry point.
+    // We register as BOTH Workflow (for DevUI graph visualization) and AIAgent (for chat).
+    // Note: We bypass AddWorkflow because HandoffsWorkflowBuilder.Build() doesn't set
+    // the workflow name, causing AddWorkflow's name validation to fail.
+    builder.Services.AddKeyedSingleton<Workflow>("MyAgent", (sp, key) =>
+    {
+        var router = sp.GetRequiredKeyedService<AIAgent>("Router");
+        var specialist = sp.GetRequiredKeyedService<AIAgent>("Specialist");
+        return AgentWorkflowBuilder.CreateHandoffBuilderWith(router)
+            .WithHandoffs(router, [specialist])
+            .WithHandoffs(specialist, [router])
+            .Build();
+    });
+
+    builder.AddAIAgent("MyAgent", (sp, key) =>
+        sp.GetRequiredKeyedService<Workflow>("MyAgent").AsAIAgent(name: key));
+#endif
+}
+#else
 var connectionString = builder.Configuration.GetConnectionString("openai");
 if (!string.IsNullOrEmpty(connectionString))
 {
@@ -140,6 +229,7 @@ if (!string.IsNullOrEmpty(connectionString))
         sp.GetRequiredKeyedService<Workflow>("MyAgent").AsAIAgent(name: key));
 #endif
 }
+#endif
 
 // ── AG-UI Protocol ───────────────────────────────────────────────────────────
 // AG-UI provides standardized streaming communication between the agent and
@@ -177,8 +267,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", (IServiceProvider sp) => sp.GetKeyedService<AIAgent>("MyAgent") is null
-#if (UseFoundry)
-    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai to your Foundry endpoint in AppHost user-secrets."
+#if (UseAnyFoundry)
+    ? "⚠️ Agent Service is running but AI is not configured. Check Foundry resource in AppHost."
 #elif (UseAzureOpenAI)
     ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai to your Azure OpenAI endpoint in AppHost user-secrets."
 #else

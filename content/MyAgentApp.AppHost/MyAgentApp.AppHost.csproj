@@ -11,6 +11,9 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="13.1.2" />
+<!--#if (UseAnyFoundry) -->
+    <PackageReference Include="Aspire.Hosting.Foundry" Version="13.2.1-preview.1.26180.6" />
+<!--#endif -->
   </ItemGroup>
 
   <ItemGroup>

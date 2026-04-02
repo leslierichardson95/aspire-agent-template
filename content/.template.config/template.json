@@ -74,11 +74,15 @@
       "choices": [
         {
           "choice": "Foundry",
-          "description": "Azure AI Foundry (recommended)"
+          "description": "Azure AI Foundry — typed model deployment, auto-provisioning with azd"
+        },
+        {
+          "choice": "FoundryLocal",
+          "description": "Foundry Local — zero-config local LLM, no Azure account needed"
         },
         {
           "choice": "AzureOpenAI",
-          "description": "Azure OpenAI Service"
+          "description": "Azure OpenAI Service (connection string)"
         },
         {
           "choice": "OpenAI",
@@ -90,6 +94,14 @@
     "UseFoundry": {
       "type": "computed",
       "value": "(provider == \"Foundry\")"
+    },
+    "UseFoundryLocal": {
+      "type": "computed",
+      "value": "(provider == \"FoundryLocal\")"
+    },
+    "UseAnyFoundry": {
+      "type": "computed",
+      "value": "(provider == \"Foundry\" || provider == \"FoundryLocal\")"
     },
     "UseAzureOpenAI": {
       "type": "computed",
