@@ -31,8 +31,17 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<McpToolProvider>()
 #if (UseAnyFoundry)
 // Foundry: IChatClient is registered automatically via Aspire service discovery.
 // The deployment is declared in the AppHost — no manual config needed here.
-builder.AddAzureChatCompletionsClient("chat")
-    .AddChatClient("chat");
+// The configureSettings callback ensures the endpoint includes /models, which
+// the Azure.AI.Inference SDK requires but Aspire Foundry doesn't add yet (preview).
+builder.AddAzureChatCompletionsClient("chat", settings =>
+{
+    if (settings.Endpoint is not null &&
+        !settings.Endpoint.AbsolutePath.TrimEnd('/').EndsWith("models", StringComparison.OrdinalIgnoreCase))
+    {
+        settings.Endpoint = new Uri(settings.Endpoint.ToString().TrimEnd('/') + "/models");
+    }
+})
+.AddChatClient("chat");
 #elif (UseAzureOpenAI)
 // Azure OpenAI connection string. Set in AppHost user-secrets:
 //   cd MyAgentApp.AppHost
@@ -71,6 +80,20 @@ builder.AddAzureChatCompletionsClient("chat")
     // ── Multi-Agent Handoff Workflow ─────────────────────────────────────────
     // Router: classifies user intent and routes to the appropriate specialist.
     // Specialist: handles domain-specific tasks using tools.
+    //
+    // TOKEN OPTIMIZATION: The Router agent has NO tools — it only routes.
+    // When adding more specialists, give each agent ONLY the tools it needs.
+    // Every tool schema adds ~200-400 tokens per LLM call. With 5+ agents
+    // in a handoff chain, unnecessary tools multiply quickly.
+    //
+    // Example (Interview Coach pattern):
+    //   Router: no tools (routing only)
+    //   Receptionist: create_session, get_session, update_session
+    //   Interviewer: get_session, update_session
+    //   Summariser: get_session, complete_session
+    //
+    // CAPACITY: Multi-agent handoff requires 2+ LLM calls per user message
+    // (router + specialist). Budget 50K+ TPM for smooth interactive use.
     // TODO: Add more specialist agents for different domains.
 
     builder.AddAIAgent("Router", (sp, name) =>
@@ -168,6 +191,14 @@ if (!string.IsNullOrEmpty(connectionString))
     // ── Multi-Agent Handoff Workflow ─────────────────────────────────────────
     // Router: classifies user intent and routes to the appropriate specialist.
     // Specialist: handles domain-specific tasks using tools.
+    //
+    // TOKEN OPTIMIZATION: The Router agent has NO tools — it only routes.
+    // When adding more specialists, give each agent ONLY the tools it needs.
+    // Every tool schema adds ~200-400 tokens per LLM call. With 5+ agents
+    // in a handoff chain, unnecessary tools multiply quickly.
+    //
+    // CAPACITY: Multi-agent handoff requires 2+ LLM calls per user message
+    // (router + specialist). Budget 50K+ TPM for smooth interactive use.
     // TODO: Add more specialist agents for different domains.
 
     builder.AddAIAgent("Router", (sp, name) =>
