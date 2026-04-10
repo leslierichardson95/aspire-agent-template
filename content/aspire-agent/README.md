@@ -1,6 +1,6 @@
-# XmlEncodedProjectName
+# Aspire AI Agent
 
-An AI agent application built with [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents).
+A minimal AI agent service built with [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents). This template provides the foundation — an Aspire-orchestrated agent with DevUI for testing — so you can focus on adding your own tools and domain logic.
 
 ## Why Aspire for AI Agents?
 

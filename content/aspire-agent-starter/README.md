@@ -1,6 +1,6 @@
-# XmlEncodedProjectName
+# Aspire AI Agent Starter App
 
-An AI agent application built with [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents).
+A full-featured AI agent application built with [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents). Includes a Blazor chat UI with AG-UI streaming, sample domain tools, and optional MCP server and multi-agent handoff — everything you need to start building a real agent app.
 
 ## Why Aspire for AI Agents?
 
