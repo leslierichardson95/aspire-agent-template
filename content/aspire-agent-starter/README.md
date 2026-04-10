@@ -20,6 +20,15 @@ XmlEncodedProjectName.Web --AG-UI (SSE)--> XmlEncodedProjectName.Agent
 <!--#else -->
                             AI Agent (Azure AI Foundry via Aspire)
 <!--#endif -->
+<!--#elif (UseFoundryLocal) -->
+<!--#if (IncludeHandoff) -->
+                            Router Agent (Foundry Local)
+                                |
+                                v  handoff
+                            Specialist Agent
+<!--#else -->
+                            AI Agent (Foundry Local)
+<!--#endif -->
 <!--#elif (UseAzureOpenAI) -->
 <!--#if (IncludeHandoff) -->
                             Router Agent (Azure OpenAI via Aspire)
@@ -105,6 +114,14 @@ Optionally set the model deployment name (defaults to `gpt-4o-mini`):
 cd XmlEncodedProjectName.Agent
 dotnet user-secrets set "OpenAI:Deployment" "gpt-4o-mini"
 ```
+<!--#elif (UseFoundryLocal) -->
+### 1. Install Foundry Local
+
+Install Foundry Local for zero-config local LLM:
+https://learn.microsoft.com/azure/ai-foundry/foundry-local/get-started
+
+No Azure account or API keys needed. The model runs entirely on your machine.
+
 <!--#elif (UseAzureOpenAI) -->
 ### 1. Configure Azure OpenAI
 
