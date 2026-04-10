@@ -2,17 +2,6 @@
 
 A minimal AI agent service built with [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents). This template provides the foundation — an Aspire-orchestrated agent with DevUI for testing — so you can focus on adding your own tools and domain logic.
 
-## Why Aspire for AI Agents?
-
-.NET Aspire turns a multi-service agent system into a single `dotnet run` experience:
-
-- **One-command startup** — The AppHost launches the agent, connects the LLM, and wires up service discovery automatically
-- **Observability built in** — OpenTelemetry traces every agent → LLM → tool call across services; view logs, traces, and metrics in the Aspire dashboard
-- **Swap providers instantly** — Change the LLM (Foundry, Azure OpenAI, OpenAI, local) by changing one connection string — no code changes
-- **Resilience for AI workloads** — ServiceDefaults configures retry and circuit-breaker policies tuned for LLM call latencies
-- **DevUI included** — Built-in chat and tool inspection UI for debugging agents during development
-- **Cloud-ready deployment** — `azd up` deploys the entire distributed agent system to Azure
-
 ## Architecture
 
 ```
