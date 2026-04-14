@@ -44,24 +44,25 @@ https://learn.microsoft.com/azure/ai-foundry/foundry-local/get-started
 No Azure account or API keys needed.
 
 <!--#elif (UseAzureOpenAI) -->
-**Azure OpenAI** — Set the connection string in the **AppHost** project:
+**Azure OpenAI** — Set the endpoint via Aspire parameter. Aspire prompts in the dashboard if not configured, or set in user-secrets:
 
 ```bash
 cd XmlEncodedProjectName.AppHost
-dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
+dotnet user-secrets set "Parameters:openai-endpoint" "https://your-resource.openai.azure.com/"
 ```
 
 Make sure you're logged in: `az login`
 
 <!--#else -->
-**OpenAI** — Set the connection string in the **AppHost** project:
+**OpenAI** — Set the endpoint and key via Aspire parameters. Aspire prompts in the dashboard if not configured, or set in user-secrets:
 
 ```bash
 cd XmlEncodedProjectName.AppHost
-dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://api.openai.com/v1;Key=sk-your-key"
+dotnet user-secrets set "Parameters:openai-endpoint" "https://api.openai.com/v1"
+dotnet user-secrets set "Parameters:openai-key" "sk-your-key"
 ```
 
-For **GitHub Models**: `"Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token"`
+For **GitHub Models**: use endpoint `https://models.inference.ai.azure.com`
 
 <!--#endif -->
 

@@ -19,16 +19,14 @@ var foundry = builder.AddFoundry("foundry")
     .RunAsFoundryLocal();
 var chat = foundry.AddDeployment("chat", FoundryModel.Local.Phi4);
 #elif (UseAzureOpenAI)
-// Azure OpenAI connection string. Set in user-secrets:
-//   cd MyAgentApp.AppHost
-//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
-var openai = builder.AddConnectionString("openai");
+// Azure OpenAI — Aspire prompts for the endpoint in the dashboard if not configured.
+// Can also be set via user-secrets: Parameters:openai-endpoint
+var openaiEndpoint = builder.AddParameter("openai-endpoint");
 #else
-// OpenAI API connection string. Set in user-secrets:
-//   cd MyAgentApp.AppHost
-//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://api.openai.com/v1;Key=sk-your-key"
-//   For GitHub Models: "Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token"
-var openai = builder.AddConnectionString("openai");
+// OpenAI API — Aspire prompts for endpoint and key in the dashboard if not configured.
+// For GitHub Models, use endpoint: https://models.inference.ai.azure.com
+var openaiEndpoint = builder.AddParameter("openai-endpoint");
+var openaiKey = builder.AddParameter("openai-key", secret: true);
 #endif
 
 #if (IncludeMcp)
@@ -42,8 +40,10 @@ var agent = builder.AddProject<Projects.MyAgentApp_Agent>("agent")
 #if (UseAnyFoundry)
     .WithReference(chat)
     .WaitFor(chat)
+#elif (UseAzureOpenAI)
+    .WithEnvironment("ConnectionStrings__openai", ReferenceExpression.Create($"Endpoint={openaiEndpoint.Resource}"))
 #else
-    .WithReference(openai)
+    .WithEnvironment("ConnectionStrings__openai", ReferenceExpression.Create($"Endpoint={openaiEndpoint.Resource};Key={openaiKey.Resource}"))
 #endif
 #if (IncludeMcp)
     .WithReference(mcp)

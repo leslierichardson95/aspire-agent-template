@@ -15,14 +15,11 @@ builder.AddServiceDefaults();
 builder.AddAzureChatCompletionsClient("chat")
     .AddChatClient("chat");
 #elif (UseAzureOpenAI)
-// Azure OpenAI connection string. Set in AppHost user-secrets:
-//   cd MyAgentApp.AppHost
-//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
+// Azure OpenAI — endpoint is configured via Aspire parameter in the AppHost.
+// Set Parameters:openai-endpoint in user-secrets or enter in the Aspire dashboard.
 #else
-// OpenAI API connection string. Set in AppHost user-secrets:
-//   cd MyAgentApp.AppHost
-//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://api.openai.com/v1;Key=sk-your-key"
-//   For GitHub Models: "Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token"
+// OpenAI API — endpoint and key are configured via Aspire parameters in the AppHost.
+// Set Parameters:openai-endpoint and Parameters:openai-key in user-secrets or enter in the Aspire dashboard.
 #endif
 
 #if (UseAnyFoundry)
