@@ -392,26 +392,26 @@ Test the **tools**, not the LLM. Tools are deterministic C# methods — they don
 
 ## Part 7: Deploying to Azure
 
-Deploy your agent application to Azure Container Apps with `azd`.
+Deploy your agent application to Azure Container Apps with `aspire deploy`.
 
 ### Prerequisites
 
-- [Azure Developer CLI (azd)](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
 - An Azure subscription
 - `az login` completed
 
 ### Deploy
 
 ```bash
-azd init
-azd up
+aspire deploy
 ```
 
-`azd` will:
-1. Detect the Aspire AppHost
+Aspire will:
+1. Detect the AppHost and its `AddAzureContainerAppEnvironment` configuration
 2. Provision Azure Container Apps for each project
-3. If using `AddFoundry`, auto-provision the AI Foundry resource
+3. If using `AddFoundry`, auto-provision the Microsoft Foundry resource
 4. Inject connection strings and service discovery URLs
+
+> The templates already include the `Aspire.Hosting.Azure.AppContainers` package and the `AddAzureContainerAppEnvironment` call in the AppHost — no extra setup needed.
 
 ### What maps where
 

@@ -13,7 +13,7 @@ Aspire turns a multi-service agent system into a single `aspire start` experienc
 - **Resilience for AI workloads** — ServiceDefaults configures retry and circuit-breaker policies tuned for LLM call latencies
 - **DevUI included** — Built-in chat and tool inspection UI for debugging agents during development
 - **AG-UI streaming** — Standardized Server-Sent Events protocol between Web UI and Agent *(starter)*
-- **Cloud-ready deployment** — `azd up` deploys the entire distributed agent system to Azure
+- **Cloud-ready deployment** — `aspire deploy` deploys the entire distributed agent system to Azure
 
 > Items marked *(starter)* apply to `aspire-agent-starter` only.
 

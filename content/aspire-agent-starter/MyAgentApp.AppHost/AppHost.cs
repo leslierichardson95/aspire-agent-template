@@ -4,6 +4,8 @@ using Aspire.Hosting.Foundry;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+builder.AddAzureContainerAppEnvironment("aspire-env");
+
 // ── LLM Configuration ───────────────────────────────────────────────────────
 #if (UseFoundry)
 // Microsoft Foundry — model deployment declared in code, auto-provisioned by Aspire.
