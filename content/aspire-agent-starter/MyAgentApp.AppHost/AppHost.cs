@@ -19,18 +19,14 @@ var foundry = builder.AddFoundry("foundry")
     .RunAsFoundryLocal();
 var chat = foundry.AddDeployment("chat", FoundryModel.Local.Phi4);
 #elif (UseAzureOpenAI)
-// Azure OpenAI — Aspire prompts for the endpoint in the dashboard if not configured.
-// Can also be set via user-secrets: Parameters:openai-endpoint
-var openaiEndpoint = builder.AddParameter("openai-endpoint");
-var openai = builder.AddConnectionString("openai",
-    b => b.Append($"{openaiEndpoint}"));
+// Azure OpenAI — Aspire prompts for the connection string in the dashboard if not configured.
+// Can also be set via user-secrets: ConnectionStrings:openai
+var openai = builder.AddConnectionString("openai");
 #else
-// OpenAI API — Aspire prompts for endpoint and key in the dashboard if not configured.
-// For GitHub Models, use endpoint: https://models.inference.ai.azure.com
-var openaiEndpoint = builder.AddParameter("openai-endpoint");
-var openaiKey = builder.AddParameter("openai-key", secret: true);
-var openai = builder.AddConnectionString("openai",
-    b => b.Append($"Endpoint={openaiEndpoint};Key={openaiKey}"));
+// OpenAI API — Aspire prompts for the connection string in the dashboard if not configured.
+// Can also be set via user-secrets: ConnectionStrings:openai
+// For GitHub Models, use: Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token
+var openai = builder.AddConnectionString("openai");
 #endif
 
 #if (IncludeMcp)

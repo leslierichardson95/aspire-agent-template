@@ -74,11 +74,11 @@ https://learn.microsoft.com/azure/ai-foundry/foundry-local/get-started
 No Azure account or API keys needed. The model runs entirely on your machine.
 
 <!--#elif (UseAzureOpenAI) -->
-**Azure OpenAI** — Set the endpoint via Aspire parameter. Aspire prompts in the dashboard if not configured, or set in user-secrets:
+**Azure OpenAI** — Set the connection string. Aspire prompts in the dashboard if not configured, or set in user-secrets:
 
 ```bash
 cd XmlEncodedProjectName.AppHost
-dotnet user-secrets set "Parameters:openai-endpoint" "https://your-resource.openai.azure.com/"
+dotnet user-secrets set "ConnectionStrings:openai" "https://your-resource.openai.azure.com/"
 ```
 
 You need an Azure OpenAI resource with a deployed model. The app uses `DefaultAzureCredential` -- make sure you are logged in:
@@ -94,19 +94,17 @@ cd XmlEncodedProjectName.Agent
 dotnet user-secrets set "OpenAI:Deployment" "gpt-4o-mini"
 ```
 <!--#else -->
-**OpenAI** — Set the endpoint and key via Aspire parameters. Aspire prompts in the dashboard if not configured, or set in user-secrets:
+**OpenAI** — Set the connection string. Aspire prompts in the dashboard if not configured, or set in user-secrets:
 
 ```bash
 cd XmlEncodedProjectName.AppHost
-dotnet user-secrets set "Parameters:openai-endpoint" "https://api.openai.com/v1"
-dotnet user-secrets set "Parameters:openai-key" "sk-your-api-key"
+dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://api.openai.com/v1;Key=sk-your-api-key"
 ```
 
 For **GitHub Models**, use:
 
 ```bash
-dotnet user-secrets set "Parameters:openai-endpoint" "https://models.inference.ai.azure.com"
-dotnet user-secrets set "Parameters:openai-key" "ghp_your-token"
+dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token"
 ```
 
 Optionally set the model name (defaults to `gpt-4o-mini`):
