@@ -1,6 +1,6 @@
 # Aspire AI Agent Starter App
 
-A full-featured AI agent application built with [Aspire](https://learn.microsoft.com/dotnet/aspire/) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents). Includes a Blazor chat UI with AG-UI streaming, sample domain tools, and optional MCP server and multi-agent handoff — everything you need to start building a real agent app.
+A full-featured AI agent application built with [Aspire](https://aspire.dev) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents). Includes a Blazor chat UI with AG-UI streaming, sample domain tools, and optional MCP server and multi-agent handoff — everything you need to start building a real agent app.
 
 ## Architecture
 
@@ -271,7 +271,7 @@ Replace `TodoService` with your own domain (e.g., database-backed Orders, Custom
 
 ## Learn More
 
-- [Aspire documentation](https://learn.microsoft.com/dotnet/aspire/)
+- [Aspire documentation](https://aspire.dev)
 - [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents)
 - [AG-UI Protocol](https://learn.microsoft.com/agent-framework/ag-ui/)
 - [DevUI](https://learn.microsoft.com/agent-framework/devui/)

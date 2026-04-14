@@ -1,6 +1,6 @@
 # aspire-agent-template
 
-`dotnet new` templates for building AI agent applications with [Aspire](https://learn.microsoft.com/dotnet/aspire/) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents).
+`dotnet new` templates for building AI agent applications with [Aspire](https://aspire.dev) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents).
 
 ## Why Aspire for AI Agents?
 
@@ -154,7 +154,7 @@ See these projects built from the templates:
 
 ## Learn More
 
-- [Aspire documentation](https://learn.microsoft.com/dotnet/aspire/)
+- [Aspire documentation](https://aspire.dev)
 - [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents)
 - [AG-UI Protocol](https://learn.microsoft.com/agent-framework/ag-ui/)
 - [DevUI](https://learn.microsoft.com/agent-framework/devui/)

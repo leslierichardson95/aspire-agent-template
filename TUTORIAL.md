@@ -463,7 +463,7 @@ dotnet new aspire-agent -n MyApp --provider FoundryLocal
 
 ## Learn More
 
-- [Aspire documentation](https://learn.microsoft.com/dotnet/aspire/)
+- [Aspire documentation](https://aspire.dev)
 - [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents)
 - [AG-UI Protocol](https://learn.microsoft.com/agent-framework/ag-ui/)
 - [DevUI](https://learn.microsoft.com/agent-framework/devui/)

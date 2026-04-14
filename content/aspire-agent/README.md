@@ -1,6 +1,6 @@
 # Aspire AI Agent
 
-A minimal AI agent service built with [Aspire](https://learn.microsoft.com/dotnet/aspire/) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents). This template provides the foundation — an Aspire-orchestrated agent with DevUI for testing — so you can focus on adding your own tools and domain logic.
+A minimal AI agent service built with [Aspire](https://aspire.dev) and the [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents). This template provides the foundation — an Aspire-orchestrated agent with DevUI for testing — so you can focus on adding your own tools and domain logic.
 
 ## Architecture
 
@@ -90,7 +90,7 @@ Or see the full template: `dotnet new aspire-agent-starter`
 
 ## Learn More
 
-- [Aspire documentation](https://learn.microsoft.com/dotnet/aspire/)
+- [Aspire documentation](https://aspire.dev)
 - [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents)
 - [DevUI](https://learn.microsoft.com/agent-framework/devui/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/ai-extensions)
