@@ -1,4 +1,4 @@
-# Building AI Agents with .NET Aspire — Progressive Tutorial
+# Building AI Agents with Aspire — Progressive Tutorial
 
 This tutorial walks you from a minimal AI agent to a full-featured application with tools, web UI, MCP, multi-agent handoff, and deployment.
 
@@ -17,7 +17,7 @@ dotnet new aspire-agent -n MyAgentApp --provider FoundryLocal
 cd MyAgentApp
 ```
 
-> **Provider options:** `Foundry` (Azure AI Foundry), `FoundryLocal` (local LLM, no Azure needed), `AzureOpenAI`, `OpenAI`
+> **Provider options:** `Foundry` (Microsoft Foundry), `FoundryLocal` (local LLM, no Azure needed), `AzureOpenAI`, `OpenAI`
 
 ### What you get
 
@@ -34,8 +34,7 @@ Three projects. The AppHost starts everything; the Agent talks to the LLM.
 ### Run it
 
 ```bash
-cd MyAgentApp.AppHost
-dotnet run
+aspire start
 ```
 
 Open the Aspire dashboard URL from the console. Click the agent's endpoint to open **DevUI** — a built-in chat interface for testing your agent.
@@ -393,26 +392,26 @@ Test the **tools**, not the LLM. Tools are deterministic C# methods — they don
 
 ## Part 7: Deploying to Azure
 
-Deploy your agent application to Azure Container Apps with `azd`.
+Deploy your agent application to Azure Container Apps with `aspire deploy`.
 
 ### Prerequisites
 
-- [Azure Developer CLI (azd)](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
 - An Azure subscription
 - `az login` completed
 
 ### Deploy
 
 ```bash
-azd init
-azd up
+aspire deploy
 ```
 
-`azd` will:
-1. Detect the Aspire AppHost
+Aspire will:
+1. Detect the AppHost and its `AddAzureContainerAppEnvironment` configuration
 2. Provision Azure Container Apps for each project
-3. If using `AddFoundry`, auto-provision the AI Foundry resource
+3. If using `AddFoundry`, auto-provision the Microsoft Foundry resource
 4. Inject connection strings and service discovery URLs
+
+> The templates already include the `Aspire.Hosting.Azure.AppContainers` package and the `AddAzureContainerAppEnvironment` call in the AppHost — no extra setup needed.
 
 ### What maps where
 
@@ -421,7 +420,7 @@ azd up
 | Agent | Azure Container App |
 | Web | Azure Container App (with external ingress) |
 | MCP | Azure Container App |
-| Foundry | Azure AI Foundry account + deployment |
+| Foundry | Microsoft Foundry account + deployment |
 
 ### Production considerations
 
@@ -464,7 +463,7 @@ dotnet new aspire-agent -n MyApp --provider FoundryLocal
 
 ## Learn More
 
-- [.NET Aspire documentation](https://learn.microsoft.com/dotnet/aspire/)
+- [Aspire documentation](https://aspire.dev)
 - [Microsoft Agent Framework](https://learn.microsoft.com/dotnet/ai/agents)
 - [AG-UI Protocol](https://learn.microsoft.com/agent-framework/ag-ui/)
 - [DevUI](https://learn.microsoft.com/agent-framework/devui/)

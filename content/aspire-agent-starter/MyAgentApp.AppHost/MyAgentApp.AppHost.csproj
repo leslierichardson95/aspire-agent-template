@@ -5,12 +5,12 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <IsAspireHost>true</IsAspireHost>
     <UserSecretsId>2c3c728d-7a72-456d-a661-ae0ac83f029b</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="13.2.1" />
+    <PackageReference Include="Aspire.Hosting.Azure.AppContainers" Version="13.2.1" />
 <!--#if (UseAnyFoundry) -->
     <PackageReference Include="Aspire.Hosting.Foundry" Version="13.2.1-preview.1.26180.6" />
 <!--#endif -->

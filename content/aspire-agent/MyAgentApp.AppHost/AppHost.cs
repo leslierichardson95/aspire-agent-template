@@ -4,9 +4,11 @@ using Aspire.Hosting.Foundry;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+builder.AddAzureContainerAppEnvironment("aspire-env");
+
 // ── LLM Configuration ───────────────────────────────────────────────────────
 #if (UseFoundry)
-// Azure AI Foundry — model deployment declared in code, auto-provisioned with 'azd up'.
+// Microsoft Foundry — model deployment declared in code, auto-provisioned by Aspire.
 var foundry = builder.AddFoundry("foundry");
 var chat = foundry.AddDeployment("chat", FoundryModel.OpenAI.Gpt4oMini);
 #elif (UseFoundryLocal)
@@ -15,15 +17,13 @@ var foundry = builder.AddFoundry("foundry")
     .RunAsFoundryLocal();
 var chat = foundry.AddDeployment("chat", FoundryModel.Local.Phi4);
 #elif (UseAzureOpenAI)
-// Azure OpenAI connection string. Set in user-secrets:
-//   cd MyAgentApp.AppHost
-//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
+// Azure OpenAI — Aspire prompts for the connection string in the dashboard if not configured.
+// Can also be set via user-secrets: ConnectionStrings:openai
 var openai = builder.AddConnectionString("openai");
 #else
-// OpenAI API connection string. Set in user-secrets:
-//   cd MyAgentApp.AppHost
-//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://api.openai.com/v1;Key=sk-your-key"
-//   For GitHub Models: "Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token"
+// OpenAI API — Aspire prompts for the connection string in the dashboard if not configured.
+// Can also be set via user-secrets: ConnectionStrings:openai
+// For GitHub Models, use: Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token
 var openai = builder.AddConnectionString("openai");
 #endif
 

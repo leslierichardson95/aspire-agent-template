@@ -15,14 +15,11 @@ builder.AddServiceDefaults();
 builder.AddAzureChatCompletionsClient("chat")
     .AddChatClient("chat");
 #elif (UseAzureOpenAI)
-// Azure OpenAI connection string. Set in AppHost user-secrets:
-//   cd MyAgentApp.AppHost
-//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://your-resource.openai.azure.com/"
+// Azure OpenAI — connection string configured in the AppHost.
+// Set ConnectionStrings:openai in user-secrets or enter in the Aspire dashboard.
 #else
-// OpenAI API connection string. Set in AppHost user-secrets:
-//   cd MyAgentApp.AppHost
-//   dotnet user-secrets set "ConnectionStrings:openai" "Endpoint=https://api.openai.com/v1;Key=sk-your-key"
-//   For GitHub Models: "Endpoint=https://models.inference.ai.azure.com;Key=ghp_your-token"
+// OpenAI API — connection string configured in the AppHost.
+// Set ConnectionStrings:openai in user-secrets or enter in the Aspire dashboard.
 #endif
 
 #if (UseAnyFoundry)
@@ -90,9 +87,9 @@ app.MapGet("/", (IServiceProvider sp) => sp.GetKeyedService<AIAgent>("MyAgent") 
 #if (UseAnyFoundry)
     ? "⚠️ Agent Service is running but AI is not configured. Check Foundry resource in AppHost."
 #elif (UseAzureOpenAI)
-    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai to your Azure OpenAI endpoint in AppHost user-secrets."
+    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai in AppHost user-secrets or enter in the Aspire dashboard."
 #else
-    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai with your OpenAI API key in AppHost user-secrets."
+    ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai in AppHost user-secrets or enter in the Aspire dashboard."
 #endif
     : "Agent Service is running. DevUI at /devui.");
 
