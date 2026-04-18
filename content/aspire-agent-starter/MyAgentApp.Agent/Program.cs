@@ -63,6 +63,7 @@ builder.AddAzureChatCompletionsClient("chat")
         // └─────────────────────────────────────────────────────────────────┘
         return chatClient.AsAIAgent(
             name: name,
+            description: "A helpful AI assistant that manages a todo list using available tools.",
             instructions: """
                 You are a helpful AI assistant that manages a todo list.
                 Use the available tools to add, list, complete, and delete todo items.
@@ -136,7 +137,9 @@ builder.AddAzureChatCompletionsClient("chat")
     });
 
     builder.AddAIAgent("MyAgent", (sp, key) =>
-        sp.GetRequiredKeyedService<Workflow>("MyAgent").AsAIAgent(name: key));
+        sp.GetRequiredKeyedService<Workflow>("MyAgent").AsAIAgent(
+            name: key,
+            description: "A multi-agent workflow that routes requests to specialist agents for task management."));
 #endif
 }
 #else
@@ -169,6 +172,7 @@ if (!string.IsNullOrEmpty(connectionString))
         // └─────────────────────────────────────────────────────────────────┘
         return chatClient.AsAIAgent(
             name: name,
+            description: "A helpful AI assistant that manages a todo list using available tools.",
             instructions: """
                 You are a helpful AI assistant that manages a todo list.
                 Use the available tools to add, list, complete, and delete todo items.
@@ -233,7 +237,9 @@ if (!string.IsNullOrEmpty(connectionString))
     });
 
     builder.AddAIAgent("MyAgent", (sp, key) =>
-        sp.GetRequiredKeyedService<Workflow>("MyAgent").AsAIAgent(name: key));
+        sp.GetRequiredKeyedService<Workflow>("MyAgent").AsAIAgent(
+            name: key,
+            description: "A multi-agent workflow that routes requests to specialist agents for task management."));
 #endif
 }
 #endif
@@ -265,11 +271,10 @@ if (agent is not null)
     app.MapAGUI("/api/agui", agent);
 
     // ── A2A Protocol ─────────────────────────────────────────────────────────
-#if (IncludeHandoff)
     app.MapA2A(agent, "/api/a2a", new AgentCard
     {
-        Name = "MyAgent",
-        Description = "A multi-agent workflow that routes requests to specialist agents for task management.",
+        Name = agent.Name,
+        Description = agent.Description,
         Version = "1.0",
         DefaultInputModes = ["text"],
         DefaultOutputModes = ["text"],
@@ -279,21 +284,6 @@ if (agent is not null)
             PushNotifications = false
         }
     });
-#else
-    app.MapA2A(agent, "/api/a2a", new AgentCard
-    {
-        Name = "MyAgent",
-        Description = "A helpful AI assistant that manages a todo list using available tools.",
-        Version = "1.0",
-        DefaultInputModes = ["text"],
-        DefaultOutputModes = ["text"],
-        Capabilities = new AgentCapabilities
-        {
-            Streaming = true,
-            PushNotifications = false
-        }
-    });
-#endif
 }
 
 app.MapOpenAIResponses();

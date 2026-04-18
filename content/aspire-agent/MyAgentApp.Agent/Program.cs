@@ -31,6 +31,7 @@ builder.AddAzureChatCompletionsClient("chat")
         var chatClient = sp.GetRequiredService<IChatClient>();
         return chatClient.AsAIAgent(
             name: name,
+            description: "A helpful AI assistant that answers questions clearly and concisely.",
             instructions: """
                 You are a helpful AI assistant. Answer questions clearly and concisely.
                 """);
@@ -53,6 +54,7 @@ if (!string.IsNullOrEmpty(connectionString))
         var chatClient = openaiClient.GetChatClient(deployment).AsIChatClient();
         return chatClient.AsAIAgent(
             name: name,
+            description: "A helpful AI assistant that answers questions clearly and concisely.",
             instructions: """
                 You are a helpful AI assistant. Answer questions clearly and concisely.
                 """);
@@ -79,8 +81,8 @@ if (agent is not null)
     // ── A2A Protocol ─────────────────────────────────────────────────────────
     app.MapA2A(agent, "/api/a2a", new AgentCard
     {
-        Name = "MyAgent",
-        Description = "A helpful AI assistant that answers questions clearly and concisely.",
+        Name = agent.Name,
+        Description = agent.Description,
         Version = "1.0",
         DefaultInputModes = ["text"],
         DefaultOutputModes = ["text"],
