@@ -33,7 +33,11 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<McpToolProvider>()
 
 // ── LLM Client (Aspire-native) ──────────────────────────────────────────────
 #if (UseAnyFoundry)
-builder.AddAzureChatCompletionsClient("chat")
+// By default, rich telemetry data are enabled in development only.
+// See https://learn.microsoft.com/en-us/agent-framework/agents/observability?pivots=programming-language-csharp#enable-observability-c for reference
+builder.AddAzureChatCompletionsClient("chat",
+    configureSettings: settings =>
+        settings.EnableSensitiveTelemetryData = builder.Environment.IsDevelopment())
     .AddChatClient("chat");
 #elif (UseAzureOpenAI)
 // Azure OpenAI — connection string configured in the AppHost.
@@ -146,10 +150,16 @@ builder.AddAzureChatCompletionsClient("chat")
 var connectionString = builder.Configuration.GetConnectionString("openai");
 if (!string.IsNullOrEmpty(connectionString))
 {
+    // By default, rich telemetry data are enabled in development only.
+    // See https://learn.microsoft.com/en-us/agent-framework/agents/observability?pivots=programming-language-csharp#enable-observability-c for reference
 #if (UseOpenAI)
-    builder.AddOpenAIClientFromConfiguration("openai");
+    builder.AddOpenAIClient("openai",
+        configureSettings: settings =>
+            settings.EnableSensitiveTelemetryData = builder.Environment.IsDevelopment());
 #else
-    builder.AddAzureOpenAIClient("openai");
+    builder.AddAzureOpenAIClient("openai",
+        configureSettings: settings =>
+            settings.EnableSensitiveTelemetryData = builder.Environment.IsDevelopment());
 #endif
 
     var deployment = builder.Configuration["OpenAI:Deployment"] ?? "gpt-4o-mini";
