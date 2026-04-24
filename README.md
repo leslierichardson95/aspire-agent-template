@@ -11,7 +11,7 @@ Aspire turns a multi-service agent system into a single `aspire start` experienc
 - **Observability built in** — OpenTelemetry traces every agent → LLM → tool call across services; view logs, traces, and metrics in the Aspire dashboard
 - **Swap providers instantly** — Change the LLM (Foundry, Azure OpenAI, OpenAI, local) by changing one connection string — no code changes
 - **Resilience for AI workloads** — ServiceDefaults configures retry and circuit-breaker policies tuned for LLM call latencies
-- **DevUI included** — Built-in chat and tool inspection UI for debugging agents during development
+- **DevUI included** — Aspire-hosted chat and tool inspection UI for debugging agents during development
 - **AG-UI streaming** — Standardized Server-Sent Events protocol between Web UI and Agent *(starter)*
 - **Cloud-ready deployment** — `aspire deploy` deploys the entire distributed agent system to Azure
 
@@ -21,12 +21,12 @@ Aspire turns a multi-service agent system into a single `aspire start` experienc
 
 | Template | Short name | What you get |
 |----------|-----------|--------------|
-| **[Aspire AI Agent](content/aspire-agent)** | `aspire-agent` | Minimal starting point — AppHost, Agent service with DevUI, ServiceDefaults |
+| **[Aspire AI Agent](content/aspire-agent)** | `aspire-agent` | Minimal starting point — AppHost (with DevUI resource), Agent service, ServiceDefaults |
 | **[Aspire AI Agent Starter App](content/aspire-agent-starter)** | `aspire-agent-starter` | Full app — adds Blazor chat UI, sample domain tools, optional MCP server and multi-agent handoff |
 
 ### aspire-agent (minimal)
 
-A clean foundation for building an AI agent service. Includes the Aspire orchestrator, an agent with DevUI for testing, and shared service defaults. No UI, no sample domain logic — just the wiring.
+A clean foundation for building an AI agent service. Includes the Aspire orchestrator (with a DevUI resource for testing), an agent service, and shared service defaults. No UI, no sample domain logic — just the wiring.
 
 ```bash
 dotnet new aspire-agent -n MyAgent
@@ -34,8 +34,8 @@ dotnet new aspire-agent -n MyAgent
 
 ```
 MyAgent/
-├── MyAgent.AppHost/           # Aspire orchestrator
-├── MyAgent.Agent/             # AI agent service with DevUI
+├── MyAgent.AppHost/           # Aspire orchestrator (also hosts DevUI)
+├── MyAgent.Agent/             # AI agent service
 └── MyAgent.ServiceDefaults/   # OpenTelemetry, health checks, resilience
 ```
 
@@ -50,7 +50,7 @@ dotnet new aspire-agent-starter -n MyAgent
 ```
 MyAgent/
 ├── MyAgent.AppHost/           # Aspire orchestrator
-├── MyAgent.Agent/             # AI agent service with AG-UI endpoint, DevUI, tools
+├── MyAgent.Agent/             # AI agent service with AG-UI endpoint, tools
 ├── MyAgent.Web/               # Blazor Server chat UI with streaming
 └── MyAgent.ServiceDefaults/   # OpenTelemetry, health checks, resilience
 ```
@@ -107,7 +107,7 @@ dotnet new aspire-agent-starter -n MyAgent --provider FoundryLocal
 aspire start
 ```
 
-The Aspire dashboard opens automatically. For `aspire-agent`, open the Agent endpoint to access DevUI. For `aspire-agent-starter`, click the Web UI link to start chatting.
+The Aspire dashboard opens automatically. For `aspire-agent`, open the **devui** resource endpoint to access DevUI. For `aspire-agent-starter`, click the Web UI link to start chatting (DevUI is also available via the **devui** resource).
 
 > **First run with Foundry provider:** Aspire prompts for your Azure subscription, location, and resource group, then provisions the Microsoft Foundry resource (3-10 minutes). Subsequent runs start instantly.
 
