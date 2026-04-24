@@ -1,6 +1,5 @@
 using A2A;
 using Microsoft.Agents.AI;
-using Microsoft.Agents.AI.DevUI;
 using Microsoft.Agents.AI.Hosting;
 using Microsoft.Agents.AI.Hosting.A2A;
 using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
@@ -75,7 +74,7 @@ if (!string.IsNullOrEmpty(connectionString))
 // ── AG-UI Protocol ───────────────────────────────────────────────────────────
 builder.Services.AddAGUI();
 
-// ── OpenAI-compatible API (required by DevUI) ───────────────────────────────
+// ── OpenAI-compatible API (consumed by the Aspire DevUI aggregator) ─────────
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
 
@@ -107,11 +106,6 @@ if (agent is not null)
 app.MapOpenAIResponses();
 app.MapOpenAIConversations();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapDevUI();
-}
-
 app.MapGet("/", (IServiceProvider sp) => sp.GetKeyedService<AIAgent>("MyAgent") is null
 #if (UseAnyFoundry)
     ? "⚠️ Agent Service is running but AI is not configured. Check Foundry resource in AppHost."
@@ -120,6 +114,6 @@ app.MapGet("/", (IServiceProvider sp) => sp.GetKeyedService<AIAgent>("MyAgent") 
 #else
     ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai in AppHost user-secrets or enter in the Aspire dashboard."
 #endif
-    : "Agent Service is running. DevUI at /devui.");
+    : "Agent Service is running. Open DevUI from the Aspire dashboard to chat with the agent.");
 
 app.Run();

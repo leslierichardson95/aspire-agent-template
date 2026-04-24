@@ -24,7 +24,7 @@ cd MyAgentApp
 ```
 MyAgentApp/
 ├── MyAgentApp.AppHost/          ← Aspire orchestrator (run this)
-├── MyAgentApp.Agent/            ← AI agent service with DevUI
+├── MyAgentApp.Agent/            ← AI agent service
 ├── MyAgentApp.ServiceDefaults/  ← Shared telemetry, health checks
 └── MyAgentApp.slnx
 ```
@@ -37,21 +37,21 @@ Three projects. The AppHost starts everything; the Agent talks to the LLM.
 aspire start
 ```
 
-Open the Aspire dashboard URL from the console. Click the agent's endpoint to open **DevUI** — a built-in chat interface for testing your agent.
+Open the Aspire dashboard URL from the console. Click the **devui** resource endpoint to open **DevUI** — a chat interface for testing your agent, orchestrated by the Aspire `Aspire.Hosting.AgentFramework.DevUI` integration.
 
 ### What's happening
 
 ```
 AppHost (orchestrator)
-   └── Agent (web service)
-         ├── LLM connection (Foundry/OpenAI)
-         ├── OpenAI Responses API (/v1/responses)
-         └── DevUI (/devui)
+   ├── Agent (web service)
+   │     ├── LLM connection (Foundry/OpenAI)
+   │     └── OpenAI Responses API (/v1/responses)
+   └── DevUI (Aspire resource, aggregates the agent service)
 ```
 
-- **AppHost** starts the Agent and injects the LLM connection string
-- **Agent** registers an `AIAgent` with a system prompt and connects to the LLM
-- **DevUI** provides a chat UI for development — no frontend needed yet
+- **AppHost** starts the Agent and the DevUI resource, injecting the LLM connection string
+- **Agent** registers an `AIAgent` with a system prompt and exposes OpenAI-compatible endpoints
+- **DevUI** (hosted by Aspire) aggregates the Agent and provides a chat UI — no frontend needed yet
 
 ### Key file: Agent/Program.cs
 

@@ -48,7 +48,15 @@ var agent = builder.AddProject<Projects.MyAgentApp_Agent>("agent")
     .WithReference(mcp)
     .WaitFor(mcp)
 #endif
-    .WithUrlForEndpoint("https", url => url.Url = "/devui");
+    ;
+
+// ── DevUI (Aspire integration) ──────────────────────────────────────────────
+// Aggregates agents from the agent service into a single DevUI web interface.
+// The agent name passed to WithAgentService must match the name registered via
+// AddAIAgent(...) in the agent service's Program.cs.
+builder.AddDevUI("devui")
+    .WithAgentService(agent, agents: [new("MyAgent")])
+    .WaitFor(agent);
 
 #if (IncludeWeb)
 var web = builder.AddProject<Projects.MyAgentApp_Web>("web")
