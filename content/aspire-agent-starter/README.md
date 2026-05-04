@@ -10,7 +10,7 @@ graph TD
     Web["Web UI (Blazor)"]
     Agent["Agent Service"]
     LLM["LLM Provider"]
-    DevUI["DevUI (/devui)"]
+    DevUI["DevUI resource"]
     Router["Router Agent"]
     Specialist["Specialist Agent"]
     Tools["TodoTools (in-process)"]
@@ -19,7 +19,7 @@ graph TD
     Browser --> Web
     Web -- "AG-UI (SSE)" --> Agent
     Agent --> LLM
-    Agent --> DevUI
+    DevUI -- "OpenAI Responses API" --> Agent
     Agent --> Router
     Router -- handoff --> Specialist
     Specialist --> Tools
@@ -31,14 +31,14 @@ graph TD
 **Key protocols:**
 - **AG-UI** — Standardized streaming protocol between Web UI and Agent (Server-Sent Events)
 - **Aspire service discovery** — Agent discovers the LLM via connection string injection
-- **DevUI** — Built-in dev-time debugging UI at `/devui`
+- **DevUI** — Aspire-hosted dev-time debugging UI (`Aspire.Hosting.AgentFramework.DevUI` integration in the AppHost)
 
 ## Projects
 
 | Project | Purpose |
 |---------|---------|
 | **XmlEncodedProjectName.AppHost** | Aspire orchestrator -- run this to start everything |
-| **XmlEncodedProjectName.Agent** | AI agent service with AG-UI endpoint, DevUI, tools |
+| **XmlEncodedProjectName.Agent** | AI agent service with AG-UI endpoint, OpenAI-compatible endpoints, tools |
 | **XmlEncodedProjectName.Web** | Blazor Server chat UI with streaming responses |
 | **XmlEncodedProjectName.ServiceDefaults** | Shared OpenTelemetry, health checks, resilience |
 <!--#if (IncludeMcp) -->
@@ -133,16 +133,16 @@ Open the Web UI link from the Aspire dashboard. Responses stream in real-time vi
 
 ### 4. Use DevUI (Development)
 
-When running locally, the Agent service includes **DevUI** -- a built-in web interface from the Microsoft Agent Framework for debugging and testing agents.
+The AppHost registers a **DevUI** resource via the `Aspire.Hosting.AgentFramework.DevUI` integration. It aggregates agents from the Agent service into a single web interface for debugging and testing.
 
 DevUI lets you:
 - **Chat directly with the agent** without the Blazor UI
 - **Inspect registered tools** and their parameters
 - **Trace tool calls** and agent reasoning
 
-Access DevUI from the **Agent service URL** in the Aspire dashboard (it links directly to `/devui`).
+Access DevUI from the **devui** resource URL in the Aspire dashboard.
 
-> **Note:** DevUI is only available in the `Development` environment. It is not mapped in production.
+> **Note:** DevUI is orchestrated by Aspire at dev time only — the Agent service itself does not expose a `/devui` endpoint.
 
 <!--#if (IncludeMcp) -->
 ### 5. MCP Server (Model Context Protocol)

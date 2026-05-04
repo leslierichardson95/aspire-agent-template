@@ -9,11 +9,12 @@ graph TD
     AppHost["AppHost (Aspire Orchestrator)"]
     Agent["Agent Service"]
     LLM["LLM Provider"]
-    DevUI["DevUI (/devui)"]
+    DevUI["DevUI resource"]
 
     AppHost --> Agent
+    AppHost --> DevUI
+    DevUI -- "OpenAI Responses API" --> Agent
     Agent --> LLM
-    Agent --> DevUI
 ```
 
 ## Projects
@@ -21,7 +22,7 @@ graph TD
 | Project | Purpose |
 |---------|---------|
 | **XmlEncodedProjectName.AppHost** | Aspire orchestrator — run this to start everything |
-| **XmlEncodedProjectName.Agent** | AI agent service with DevUI for testing |
+| **XmlEncodedProjectName.Agent** | AI agent service exposing OpenAI-compatible endpoints for DevUI |
 | **XmlEncodedProjectName.ServiceDefaults** | Shared OpenTelemetry, health checks, resilience |
 
 ## Getting Started
@@ -71,7 +72,7 @@ For **GitHub Models**: use `"Endpoint=https://models.inference.ai.azure.com;Key=
 aspire start
 ```
 
-Open the Aspire dashboard URL shown in the console. Click the agent's endpoint to open DevUI.
+Open the Aspire dashboard URL shown in the console. Click the **devui** resource's endpoint to open DevUI (served by the `Aspire.Hosting.AgentFramework.DevUI` integration in the AppHost).
 
 ### 3. Chat
 

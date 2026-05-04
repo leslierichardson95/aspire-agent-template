@@ -155,7 +155,7 @@
     "IncludeWeb": {
       "type": "parameter",
       "datatype": "bool",
-      "description": "Include a Blazor web frontend with chat UI. When false, use DevUI at /devui for testing.",
+      "description": "Include a Blazor web frontend with chat UI. When false, use the Aspire DevUI resource for testing.",
       "displayName": "Include Web Frontend",
       "defaultValue": "true"
     },

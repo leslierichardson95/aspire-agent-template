@@ -1,6 +1,5 @@
 using A2A;
 using Microsoft.Agents.AI;
-using Microsoft.Agents.AI.DevUI;
 using Microsoft.Agents.AI.Hosting;
 using Microsoft.Agents.AI.Hosting.A2A;
 using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
@@ -257,15 +256,15 @@ if (!string.IsNullOrEmpty(connectionString))
 // ── AG-UI Protocol ───────────────────────────────────────────────────────────
 builder.Services.AddAGUI();
 
-// ── OpenAI-compatible API (required by DevUI) ───────────────────────────────
+// ── OpenAI-compatible API (consumed by the Aspire DevUI aggregator) ─────────
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
 
 var app = builder.Build();
 
 #if (IncludeMcp)
-// Start MCP tool discovery before MapDevUI (which eagerly resolves agents).
-// This avoids deadlock from .GetAwaiter().GetResult() in agent factories.
+// Start MCP tool discovery before agents are eagerly resolved, to avoid
+// deadlock from .GetAwaiter().GetResult() in agent factories.
 var mcpProvider = app.Services.GetRequiredService<McpToolProvider>();
 using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 {
@@ -299,11 +298,6 @@ if (agent is not null)
 app.MapOpenAIResponses();
 app.MapOpenAIConversations();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapDevUI();
-}
-
 app.MapGet("/", (IServiceProvider sp) => sp.GetKeyedService<AIAgent>("MyAgent") is null
 #if (UseAnyFoundry)
     ? "⚠️ Agent Service is running but AI is not configured. Check Foundry resource in AppHost."
@@ -312,6 +306,6 @@ app.MapGet("/", (IServiceProvider sp) => sp.GetKeyedService<AIAgent>("MyAgent") 
 #else
     ? "⚠️ Agent Service is running but AI is not configured. Set ConnectionStrings:openai in AppHost user-secrets or enter in the Aspire dashboard."
 #endif
-    : "Agent Service is running. AG-UI endpoint at /api/agui. DevUI at /devui.");
+    : "Agent Service is running. AG-UI endpoint at /api/agui. Open DevUI from the Aspire dashboard to chat with the agent.");
 
 app.Run();
