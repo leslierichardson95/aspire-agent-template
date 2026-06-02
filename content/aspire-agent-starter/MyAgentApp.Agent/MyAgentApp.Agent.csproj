@@ -5,6 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>39526101-5dc0-4c36-b284-3e9a9258d02e</UserSecretsId>
+<!--#if (IncludeHandoff) -->
+    <!-- Suppress experimental-API diagnostic for AgentWorkflowBuilder.CreateHandoffBuilderWith. -->
+    <NoWarn>$(NoWarn);MAAIW001</NoWarn>
+<!--#endif -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,17 +20,17 @@
     <PackageReference Include="Aspire.Azure.AI.OpenAI" Version="13.1.2-preview.1.26125.13" />
 <!--#endif -->
     <!-- Agent Framework: core, hosting -->
-    <PackageReference Include="Microsoft.Agents.AI.Hosting" Version="1.1.0-preview.260410.1" />
-    <PackageReference Include="Microsoft.Agents.AI.Hosting.OpenAI" Version="1.1.0-alpha.260410.1" />
-    <PackageReference Include="Microsoft.Agents.AI.Hosting.AGUI.AspNetCore" Version="1.1.0-preview.260410.1" />
-    <PackageReference Include="Microsoft.Agents.AI.Hosting.A2A.AspNetCore" Version="1.1.0-preview.260410.1" />
+    <PackageReference Include="Microsoft.Agents.AI.Hosting" Version="1.8.0-preview.260528.1" />
+    <PackageReference Include="Microsoft.Agents.AI.Hosting.OpenAI" Version="1.8.0-alpha.260528.1" />
+    <PackageReference Include="Microsoft.Agents.AI.Hosting.AGUI.AspNetCore" Version="1.8.0-preview.260528.1" />
+    <PackageReference Include="Microsoft.Agents.AI.Hosting.A2A.AspNetCore" Version="1.8.0-preview.260528.1" />
 <!--#if (IncludeMcp) -->
     <!-- MCP client for connecting to the MCP server and discovering tools -->
     <PackageReference Include="ModelContextProtocol.Core" Version="1.1.0" />
 <!--#endif -->
 <!--#if (IncludeHandoff) -->
     <!-- Multi-agent workflow orchestration (handoff, sequential, concurrent) -->
-    <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="1.0.0-rc4" />
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="1.8.0" />
 <!--#endif -->
   </ItemGroup>
 
