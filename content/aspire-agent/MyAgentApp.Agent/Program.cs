@@ -1,7 +1,5 @@
-using A2A;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Hosting;
-using Microsoft.Agents.AI.Hosting.A2A;
 using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.Extensions.AI;
 
@@ -88,19 +86,7 @@ if (agent is not null)
     app.MapAGUI("/api/agui", agent);
 
     // ── A2A Protocol ─────────────────────────────────────────────────────────
-    app.MapA2A(agent, "/api/a2a", new AgentCard
-    {
-        Name = agent.Name,
-        Description = agent.Description,
-        Version = "1.0",
-        DefaultInputModes = ["text"],
-        DefaultOutputModes = ["text"],
-        Capabilities = new AgentCapabilities
-        {
-            Streaming = true,
-            PushNotifications = false
-        }
-    });
+    app.MapA2AJsonRpc(agent, "/api/a2a");
 }
 
 app.MapOpenAIResponses();
