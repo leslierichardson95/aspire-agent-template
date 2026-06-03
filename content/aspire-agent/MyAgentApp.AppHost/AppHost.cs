@@ -1,15 +1,26 @@
 #if (UseAnyFoundry)
 using Aspire.Hosting.Foundry;
 #endif
+using Aspire.Hosting.Publishing;
+using Microsoft.Extensions.DependencyInjection;
+
+#pragma warning disable ASPIRECONTAINERRUNTIME001 // Workaround for dotnet/aspire#16229
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Azure Container Apps publish target — only needed when publishing/deploying.
-// Registering it unconditionally pulls in services (AcrLoginService) that
-// require IContainerRuntime at startup, which breaks local `aspire run`.
-if (builder.ExecutionContext.IsPublishMode)
+builder.AddAzureContainerAppEnvironment("aspire-env");
+
+// Workaround for https://github.com/dotnet/aspire/issues/16229
+// Aspire.Hosting.Azure's AcrLoginService takes a non-keyed IContainerRuntime,
+// but DistributedApplicationBuilder only registers it as keyed singletons
+// ("docker"/"podman"). Service-descriptor validation in Build() then fails at
+// startup whenever any Azure resource (AddFoundry, AddAzureContainerAppEnvironment,
+// etc.) is registered. Alias the docker keyed runtime into the non-keyed slot
+// in run mode so DI validation succeeds.
+if (builder.ExecutionContext.IsRunMode)
 {
-    builder.AddAzureContainerAppEnvironment("aspire-env");
+    builder.Services.AddSingleton<IContainerRuntime>(sp =>
+        sp.GetRequiredKeyedService<IContainerRuntime>("docker"));
 }
 
 // ── LLM Configuration ───────────────────────────────────────────────────────

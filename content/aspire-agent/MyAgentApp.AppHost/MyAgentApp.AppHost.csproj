@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.2.1">
+<Project Sdk="Aspire.AppHost.Sdk/13.4.0">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,13 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.2.1" />
-    <PackageReference Include="Aspire.Hosting.Azure.AppContainers" Version="13.2.1" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.4.0" />
+    <PackageReference Include="Aspire.Hosting.Azure.AppContainers" Version="13.4.0" />
     <PackageReference Include="Aspire.Hosting.AgentFramework.DevUI" Version="1.8.0-preview.260528.1" />
     <!-- Serves the DevUI frontend directly from the Aspire aggregator (loaded via Assembly.Load). -->
     <PackageReference Include="Microsoft.Agents.AI.DevUI" Version="1.8.0-preview.260528.1" />
 <!--#if (UseAnyFoundry) -->
-    <PackageReference Include="Aspire.Hosting.Foundry" Version="13.2.1-preview.1.26180.6" />
+    <PackageReference Include="Aspire.Hosting.Foundry" Version="13.4.1-preview.1.26303.3" />
 <!--#endif -->
   </ItemGroup>
 
