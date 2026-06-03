@@ -71,7 +71,7 @@ builder.AddAzureChatCompletionsClient("chat",
                 Be friendly, concise, and helpful. When listing todos, format them clearly.
                 """,
             tools: tools);
-    });
+    }).AddA2AServer();
 #else
     // ── Multi-Agent Handoff Workflow ─────────────────────────────────────────
     // Router: classifies user intent and routes to the appropriate specialist.
@@ -140,7 +140,8 @@ builder.AddAzureChatCompletionsClient("chat",
     builder.AddAIAgent("MyAgent", (sp, key) =>
         sp.GetRequiredKeyedService<Workflow>("MyAgent").AsAIAgent(
             name: key,
-            description: "A multi-agent workflow that routes requests to specialist agents for task management."));
+            description: "A multi-agent workflow that routes requests to specialist agents for task management."))
+        .AddA2AServer();
 #endif
 }
 #else
@@ -186,7 +187,7 @@ if (!string.IsNullOrEmpty(connectionString))
                 Be friendly, concise, and helpful. When listing todos, format them clearly.
                 """,
             tools: tools);
-    });
+    }).AddA2AServer();
 #else
     // ── Multi-Agent Handoff Workflow ─────────────────────────────────────────
     builder.AddAIAgent("Router", (sp, name) =>
@@ -246,7 +247,8 @@ if (!string.IsNullOrEmpty(connectionString))
     builder.AddAIAgent("MyAgent", (sp, key) =>
         sp.GetRequiredKeyedService<Workflow>("MyAgent").AsAIAgent(
             name: key,
-            description: "A multi-agent workflow that routes requests to specialist agents for task management."));
+            description: "A multi-agent workflow that routes requests to specialist agents for task management."))
+        .AddA2AServer();
 #endif
 }
 #endif

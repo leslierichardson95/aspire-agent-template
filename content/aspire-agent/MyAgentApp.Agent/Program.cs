@@ -36,7 +36,7 @@ builder.AddAzureChatCompletionsClient("chat",
             instructions: """
                 You are a helpful AI assistant. Answer questions clearly and concisely.
                 """);
-    });
+    }).AddA2AServer();
 }
 #else
 var connectionString = builder.Configuration.GetConnectionString("openai");
@@ -65,7 +65,7 @@ if (!string.IsNullOrEmpty(connectionString))
             instructions: """
                 You are a helpful AI assistant. Answer questions clearly and concisely.
                 """);
-    });
+    }).AddA2AServer();
 }
 #endif
 
