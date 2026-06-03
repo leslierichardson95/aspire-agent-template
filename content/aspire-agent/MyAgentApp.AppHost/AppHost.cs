@@ -10,6 +10,11 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 builder.AddAzureContainerAppEnvironment("aspire-env");
 
+// Warn early at AppHost startup if any Azure resource providers needed by Foundry / ACA
+// provisioning aren't registered on the active subscription, instead of failing later with
+// a cryptic "Failed to register resource provider (Code: Conflict)" mid-provision.
+builder.AddAzureProviderPreflight();
+
 // Workaround for https://github.com/dotnet/aspire/issues/16229
 // Aspire.Hosting.Azure's AcrLoginService takes a non-keyed IContainerRuntime,
 // but DistributedApplicationBuilder only registers it as keyed singletons
