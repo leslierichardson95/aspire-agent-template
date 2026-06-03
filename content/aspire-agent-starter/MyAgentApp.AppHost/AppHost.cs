@@ -4,7 +4,13 @@ using Aspire.Hosting.Foundry;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddAzureContainerAppEnvironment("aspire-env");
+// Azure Container Apps publish target — only needed when publishing/deploying.
+// Registering it unconditionally pulls in services (AcrLoginService) that
+// require IContainerRuntime at startup, which breaks local `aspire run`.
+if (builder.ExecutionContext.IsPublishMode)
+{
+    builder.AddAzureContainerAppEnvironment("aspire-env");
+}
 
 // ── LLM Configuration ───────────────────────────────────────────────────────
 #if (UseFoundry)
